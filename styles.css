@@ -67,6 +67,26 @@ h1 em { color: var(--red); font: italic 700 1em/1 Georgia, serif; letter-spacing
 }
 .fighter-art { position: relative; height: 195px; width: 100%; max-width: 260px; margin: 0 auto; display: grid; place-items: center; }
 .fighter-art svg { width: min(100%, 220px); height: 100%; filter: drop-shadow(4px 4px 0 rgba(0, 0, 0, 0.35)); }
+.fighter-art img {
+    width: 170px;
+    height: 170px;
+    object-fit: cover;
+    border: 3px solid #171715;
+    border-radius: 4px;
+    box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.45);
+    background: #171715;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease;
+    animation: stage-img-fade 0.35s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes stage-img-fade {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+.fighter-art img:hover {
+    transform: scale(1.04);
+    box-shadow: 5px 5px 0 var(--acid);
+}
 .home-art { --fighter-accent: var(--red); background: radial-gradient(ellipse at center 72%, #bda4d633, transparent 58%); }
 .home-shadow, .pigeon-shadow { fill: #090909; opacity: .8; }
 .home-body { fill: #d0b996; stroke: #171715; stroke-width: 5; stroke-linejoin: round; }

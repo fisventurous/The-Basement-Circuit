@@ -42,6 +42,10 @@ const zoomTag = $("[data-zoom-tag]");
 const closeZoomButton = $("[data-action='close-zoom']");
 const homeAvatar = $("[data-home-avatar]");
 const awayAvatar = $("[data-away-avatar]");
+const stageHomeArt = $("[data-stage-home-art]");
+const stageAwayArt = $("[data-stage-away-art]");
+const defaultHomeSvg = stageHomeArt?.querySelector("svg")?.outerHTML ?? "";
+const defaultAwaySvg = stageAwayArt?.querySelector("svg")?.outerHTML ?? "";
 const challengerName = $("[data-challenger-name]");
 const challengerLine = $("[data-challenger-line]");
 const challengerTraits = $("[data-challenger-traits]");
@@ -285,6 +289,14 @@ returnCornerButton?.addEventListener("click", () => {
         rematch = 0;
         fightPanel.hidden = true;
         boutResult.hidden = true;
+        if (stageHomeArt && defaultHomeSvg) {
+            stageHomeArt.innerHTML = '<span class="fighter-mark" data-home-mark></span>' + defaultHomeSvg;
+        }
+        if (stageAwayArt && defaultAwaySvg) {
+            stageAwayArt.innerHTML = defaultAwaySvg;
+        }
+        const cornerHomeLabel = $(".corner-home .corner-label b");
+        if (cornerHomeLabel) cornerHomeLabel.textContent = "THE UNKNOWN";
         if (seriesStamp) seriesStamp.textContent = `BOUT 01 / 03`;
         if (matchmakerSub) matchmakerSub.textContent = `BOUT 01 / 03 · SEVEN ROUNDS`;
         status.textContent = "A good line can beat a bad matchup.";
@@ -361,6 +373,22 @@ async function renderAvatar(container, fighter, isChallenger = false) {
             img.loading = "lazy";
             img.decoding = "async";
             container.replaceChildren(img);
+
+            const stageArt = isChallenger ? stageAwayArt : stageHomeArt;
+            if (stageArt) {
+                const mark = stageArt.querySelector("[data-home-mark]");
+                const stageImg = document.createElement("img");
+                stageImg.src = objectUrl;
+                stageImg.alt = fighter.name || (isChallenger ? "Pigeon Pete" : "Contender");
+                stageImg.loading = "lazy";
+                stageImg.decoding = "async";
+                stageImg.title = "Click to inspect portrait";
+                if (mark) {
+                    stageArt.replaceChildren(mark, stageImg);
+                } else {
+                    stageArt.replaceChildren(stageImg);
+                }
+            }
         }
     } catch {
         // Retain the SVG silhouette
@@ -778,11 +806,12 @@ howDialog?.addEventListener("click", (event) => {
 
 function openZoom(isChallenger) {
     if (!zoomDialog) return;
+    const stageArt = isChallenger ? stageAwayArt : stageHomeArt;
     const avatarEl = isChallenger ? awayAvatar : homeAvatar;
     const fighter = isChallenger ? makeChallenger(CORNER_RUMOURS[currentRumourIndex], rematch) : currentFighter;
     if (!fighter && !isChallenger) return;
-    const img = avatarEl?.querySelector("img");
-    const svg = avatarEl?.querySelector("svg");
+    const img = stageArt?.querySelector("img") || avatarEl?.querySelector("img");
+    const svg = avatarEl?.querySelector("svg") || stageArt?.querySelector("svg");
     if (zoomMedia) {
         if (img) {
             zoomMedia.innerHTML = `<img src="${img.src}" alt="${fighter?.name || 'Portrait'}" />`;
@@ -797,6 +826,8 @@ function openZoom(isChallenger) {
 
 homeAvatar?.addEventListener("click", () => openZoom(false));
 awayAvatar?.addEventListener("click", () => openZoom(true));
+stageHomeArt?.addEventListener("click", () => openZoom(false));
+stageAwayArt?.addEventListener("click", () => openZoom(true));
 closeZoomButton?.addEventListener("click", () => zoomDialog?.close());
 zoomDialog?.addEventListener("click", (event) => {
     const card = zoomDialog.querySelector(".zoom-card");

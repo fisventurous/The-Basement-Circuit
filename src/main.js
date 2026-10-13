@@ -52,6 +52,12 @@ const challengerTraits = $("[data-challenger-traits]");
 const challengerMoves = $("[data-challenger-moves]");
 const resultStampWrap = $("[data-result-stamp-wrap]");
 const resultStamp = $("[data-result-stamp]");
+const boutStripLeft = $("[data-bout-strip-left]");
+const boutStripRight = $("[data-bout-strip-right]");
+const stageMark = $("[data-stage-mark]");
+const stageCaption = $("[data-stage-caption]");
+const boutFooterLeft = $("[data-bout-footer-left]");
+const boutFooterRight = $("[data-bout-footer-right]");
 const forgePanel = $("[data-forge-panel]");
 const forgeHeading = $("[data-forge-heading]");
 const forgeStep = $("[data-forge-step]");
@@ -307,6 +313,30 @@ returnCornerButton?.addEventListener("click", () => {
         if (stageAwayArt && defaultAwaySvg) {
             stageAwayArt.innerHTML = defaultAwaySvg;
         }
+        if (boutStripLeft) boutStripLeft.textContent = "TONIGHT’S MAIN EVENT";
+        if (boutStripRight) {
+            boutStripRight.textContent = "RULES: MOSTLY FAIR";
+            boutStripRight.style.color = "";
+        }
+        if (stageMark) {
+            stageMark.textContent = "VS";
+            stageMark.className = "stage-mark";
+        }
+        if (stageCaption) {
+            stageCaption.textContent = "SOMEONE HAS TO LOSE";
+            stageCaption.className = "stage-caption";
+        }
+        if (boutFooterLeft) boutFooterLeft.textContent = "SEVEN ROUNDS OR A KNOCKOUT";
+        if (boutFooterRight) boutFooterRight.textContent = "THE HOUSE TAKES NO RESPONSIBILITY";
+        const cornerHome = $(".corner-home");
+        const cornerAway = $(".corner-away");
+        cornerHome?.classList.remove("is-series-winner", "is-series-loser");
+        cornerAway?.classList.remove("is-series-winner", "is-series-loser");
+        const healthStatus = $(".health-row span");
+        if (healthStatus) {
+            healthStatus.textContent = "WAITING ON THE INTRODUCTIONS";
+            healthStatus.className = "";
+        }
         const cornerHomeLabel = $(".corner-home .corner-label b");
         if (cornerHomeLabel) cornerHomeLabel.textContent = "THE UNKNOWN";
         if (seriesStamp) seriesStamp.textContent = `BOUT 01 / 03`;
@@ -454,6 +484,23 @@ function showDossier(line, fighter, fromPollinations = false) {
     if (scoutButton) {
         scoutButton.disabled = true;
     }
+    if (boutStripLeft) boutStripLeft.textContent = "TONIGHT’S MAIN EVENT";
+    if (boutStripRight) {
+        boutStripRight.textContent = "RULES: MOSTLY FAIR";
+        boutStripRight.style.color = "";
+    }
+    if (stageMark) {
+        stageMark.textContent = "VS";
+        stageMark.className = "stage-mark";
+    }
+    if (stageCaption) {
+        stageCaption.textContent = "SOMEONE HAS TO LOSE";
+        stageCaption.className = "stage-caption";
+    }
+    if (boutFooterLeft) boutFooterLeft.textContent = "SEVEN ROUNDS OR A KNOCKOUT";
+    if (boutFooterRight) boutFooterRight.textContent = "THE HOUSE TAKES NO RESPONSIBILITY";
+    $(".corner-home")?.classList.remove("is-series-winner", "is-series-loser");
+    $(".corner-away")?.classList.remove("is-series-winner", "is-series-loser");
     $("[data-fighter-name]").textContent = fighter.name;
     $(".corner-home .corner-label b").textContent = fighter.name;
     if (homeHpVal) homeHpVal.textContent = `${fighter.maxHp} HP`;
@@ -662,6 +709,38 @@ async function playFight() {
         startFightButton.innerHTML = 'Series Complete <span aria-hidden="true">✓</span>';
         const seriesWon = seriesWins > seriesLosses;
         const seriesVerdict = seriesWon ? "SERIES WON" : "SERIES LOST";
+        const winnerName = seriesWon ? (currentFighter?.name?.toUpperCase() || "YOU") : "PIGEON PETE";
+        const score = `${seriesWins}-${seriesLosses}`;
+
+        if (boutStripLeft) boutStripLeft.textContent = `SERIES CONCLUDED · 3 BOUTS`;
+        if (boutStripRight) {
+            boutStripRight.textContent = `CHAMPION: ${winnerName} (${score})`;
+            boutStripRight.style.color = seriesWon ? "var(--acid)" : "#f77a63";
+        }
+        if (stageMark) {
+            stageMark.textContent = score;
+            stageMark.className = `stage-mark ${seriesWon ? "is-series-win" : "is-series-loss"}`;
+        }
+        if (stageCaption) {
+            stageCaption.textContent = seriesWon ? "SERIES CHAMPION" : "PETE RETAINS BELT";
+            stageCaption.classList.add("is-series-verdict");
+        }
+        if (healthStatus) {
+            healthStatus.textContent = `🏆 ${winnerName} WINS THE SERIES (${score}) · BOUT 3: ${bout.winner.toUpperCase()} (${bout.verdict})`;
+            healthStatus.className = `is-series-verdict ${seriesWon ? "is-win" : "is-loss"}`;
+        }
+        if (cornerHome && cornerAway) {
+            if (seriesWon) {
+                cornerHome.classList.add("is-series-winner");
+                cornerAway.classList.add("is-series-loser");
+            } else {
+                cornerAway.classList.add("is-series-winner");
+                cornerHome.classList.add("is-series-loser");
+            }
+        }
+        if (boutFooterLeft) boutFooterLeft.textContent = `FINAL STANDING: ${seriesWins} WINS · ${seriesLosses} LOSSES`;
+        if (boutFooterRight) boutFooterRight.textContent = seriesWon ? "ODD BELT CLAIMED · CONTENDER TRIUMPHS" : "HOUSE RETAINS THE PURSE";
+
         if (matchmakerSub) matchmakerSub.textContent = `SERIES CONCLUDED · ${seriesWins}W - ${seriesLosses}L`;
         if (seriesStamp) seriesStamp.textContent = `${seriesWins}W - ${seriesLosses}L`;
         if (returnCornerButton) {

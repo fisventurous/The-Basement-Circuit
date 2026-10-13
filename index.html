@@ -114,11 +114,13 @@
                         <div class="scout-meta">
                             <span class="scout-count" data-scout-count>SCOUT 01 / 25</span>
                             <button class="scout-cycle" type="button" data-action="cycle-scout" title="Hear another corner rumour" aria-label="Hear another corner rumour">↺</button>
-                            <button class="scout-bribe" type="button" data-action="bribe-scout" title="Bribe cellar informant with AI" aria-label="Bribe cellar informant with AI">✦ BRIBE</button>
                         </div>
                     </div>
                     <p class="scout-question" data-scout-question>Pete’s been seen circling the chip shop. What’s he afraid of?</p>
-                    <button class="scout-button" type="button" data-action="scout"><span>ASK AROUND</span><b aria-hidden="true">↗</b></button>
+                    <div class="scout-actions">
+                        <button class="scout-button" type="button" data-action="scout"><span>ASK AROUND</span><b aria-hidden="true">↗</b></button>
+                        <button class="scout-bribe" type="button" data-action="bribe-scout" title="Bribe cellar informant for an unscripted AI tip"><span>✦ BRIBE INFORMANT</span><small>AI TIP</small></button>
+                    </div>
                     <p class="scout-answer" data-scout-answer aria-live="polite" hidden></p>
                     <div class="paper-edge" aria-hidden="true"></div>
                 </aside>

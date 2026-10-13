@@ -147,7 +147,9 @@ bribeButton?.addEventListener("click", async () => {
         return;
     }
     bribeButton.disabled = true;
-    bribeButton.textContent = "BRIBING…";
+    const labelSpan = bribeButton.querySelector("span");
+    if (labelSpan) labelSpan.textContent = "BRIBING…";
+    else bribeButton.textContent = "BRIBING…";
     status.textContent = "Passing coins across the table for the latest cellar whisper…";
     try {
         const customRumour = await generateCustomRumour(token);
@@ -165,7 +167,8 @@ bribeButton?.addEventListener("click", async () => {
         status.textContent = err instanceof Error ? err.message : "The informant pocketed your coins and slipped away.";
     } finally {
         bribeButton.disabled = false;
-        bribeButton.textContent = "✦ BRIBE";
+        if (labelSpan) labelSpan.textContent = "✦ BRIBE INFORMANT";
+        else bribeButton.textContent = "✦ BRIBE INFORMANT";
     }
 });
 

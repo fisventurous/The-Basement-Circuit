@@ -7,8 +7,8 @@
         <meta name="description" content="Write a fighter. Scout the rival. Call the upset." />
         <title>The Basement Circuit</title>
         <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='20' fill='%23e65032'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-family='Georgia,serif' font-weight='900' font-size='22' fill='%23fff4dc'%3EB!%3C/text%3E%3C/svg%3E" />
-        <link rel="stylesheet" href="styles.css?v=final3" />
-        <script type="module" src="src/main.js?v=final3"></script>
+        <link rel="stylesheet" href="styles.css?v=final4" />
+        <script type="module" src="src/main.js?v=final4"></script>
     </head>
     <body>
         <header class="masthead">
@@ -32,10 +32,10 @@
                     <h1 id="page-title">Write a fighter.<br /><em>Call the upset.</em></h1>
                     <p class="lede">The challenger has a weakness. You get one line to make someone who can use it.</p>
                 </div>
-                <div class="round-stamp" aria-label="Round one of seven">
+                <div class="round-stamp" aria-label="Bout one of three">
                     <span>ROAD TO</span>
                     <strong>THE<br />ODD<br />BELT</strong>
-                    <small>RUNG 01 / 07</small>
+                    <small data-series-stamp>BOUT 01 / 03</small>
                 </div>
             </section>
 
@@ -140,13 +140,13 @@
                         <p class="eyebrow">TONIGHT’S TALE OF THE TAPE</p>
                         <h2 id="dossier-title">The Matchmaker’s Programme</h2>
                     </div>
-                    <span class="matchmaker-sub">SEVEN ROUNDS · THE ODD BELT</span>
+                    <span class="matchmaker-sub" data-matchmaker-sub>BOUT 01 / 03 · SEVEN ROUNDS</span>
                 </div>
 
                 <div class="dossier-grid">
                     <article class="card-dossier card-home" aria-label="Contender card">
                         <div class="dossier-head">
-                            <div class="dossier-avatar" data-home-avatar></div>
+                            <button class="dossier-avatar" data-home-avatar type="button" aria-label="Zoom contender portrait" title="Click to zoom portrait"></button>
                             <div class="dossier-titles">
                                 <span class="eyebrow">YOUR CORNER</span>
                                 <h3 data-fighter-name></h3>
@@ -154,19 +154,37 @@
                             </div>
                             <span class="dossier-number">CONTENDER<br /><b>NO. 01</b></span>
                         </div>
+                        <div class="dossier-health" data-home-health>
+                            <div class="health-meta">
+                                <span class="eyebrow">GRIT / STAMINA</span>
+                                <b class="health-val" data-home-hp-val>-- HP</b>
+                            </div>
+                            <div class="health-bar-track">
+                                <div class="health-bar-fill" data-home-hp-bar style="width: 100%;"></div>
+                            </div>
+                        </div>
                         <div class="dossier-traits" data-fighter-traits></div>
                         <div class="move-strip"><span class="eyebrow">SIGNED MOVES</span><div data-fighter-moves></div></div>
                     </article>
 
                     <article class="card-dossier card-away" aria-label="Challenger card">
                         <div class="dossier-head">
-                            <div class="dossier-avatar" data-away-avatar></div>
+                            <button class="dossier-avatar" data-away-avatar type="button" aria-label="Zoom challenger portrait" title="Click to zoom portrait"></button>
                             <div class="dossier-titles">
                                 <span class="eyebrow">THE CHALLENGER</span>
                                 <h3 data-challenger-name>Pigeon Pete</h3>
                                 <p class="dossier-line" data-challenger-line></p>
                             </div>
                             <span class="dossier-number">HOUSE<br /><b>CHAMP</b></span>
+                        </div>
+                        <div class="dossier-health" data-away-health>
+                            <div class="health-meta">
+                                <span class="eyebrow">GRIT / STAMINA</span>
+                                <b class="health-val" data-away-hp-val>-- HP</b>
+                            </div>
+                            <div class="health-bar-track">
+                                <div class="health-bar-fill" data-away-hp-bar style="width: 100%;"></div>
+                            </div>
                         </div>
                         <div class="dossier-traits" data-challenger-traits></div>
                         <div class="move-strip"><span class="eyebrow">SIGNED MOVES</span><div data-challenger-moves></div></div>
@@ -181,7 +199,10 @@
                         <button type="button" data-tactic="gamble" aria-pressed="false"><b>GAMBLE</b><span>one big chance</span></button>
                     </div>
                 </div>
-                <div class="dossier-actions"><span class="form-status" data-fight-status>Local rules preview · no Pollen used.</span><button class="fight-button" type="button" data-action="start-fight">Ring the bell <span aria-hidden="true">↗</span></button></div>
+                <div class="dossier-actions">
+                    <span class="form-status" data-fight-status>Local rules preview · no Pollen used.</span>
+                    <button class="fight-button" type="button" data-action="start-fight">Ring Bout 1 <span aria-hidden="true">↗</span></button>
+                </div>
             </section>
 
             <section class="bout-result" data-bout-result hidden aria-labelledby="result-title">
@@ -194,7 +215,9 @@
                 </div>
                 <div class="result-stamp-wrap" data-result-stamp-wrap hidden><div class="result-stamp" data-result-stamp></div></div>
                 <ol class="round-log" data-round-log aria-live="polite" aria-relevant="additions"></ol>
-                <button class="rematch-button" type="button" data-action="rematch">SAME LINE. NEW NIGHT.</button>
+                <div class="result-navigation">
+                    <button class="return-corner-button" type="button" data-action="return-corner">RETURN TO CORNER FOR BOUT 02 ↑</button>
+                </div>
             </section>
 
             <section class="fight-tape" aria-label="Fight record">
@@ -215,13 +238,25 @@
             <h2 id="how-title">How to play</h2>
             <p class="how-intro">Any kind of contender can enter. Your line is a starting point, not a character template.</p>
             <ol class="how-steps">
-                <li><span aria-hidden="true">01</span><p><b>Ask around.</b> Pete can’t resist crisps. Put a snack in your description to use that counter.</p></li>
-                <li><span aria-hidden="true">02</span><p><b>Write one line.</b> Invent anyone you like. The AI can add vivid details and surprising moves while keeping the spirit of your idea.</p></li>
-                <li><span aria-hidden="true">03</span><p><b>Pick a corner call.</b> In round four, Push hits harder but leaves you open; Brace cuts incoming damage; Gamble can pay off or fizzle.</p></li>
-                <li><span aria-hidden="true">04</span><p><b>Watch the tape.</b> The fight runs for up to seven rounds or a knockout, with each move logged as it happens. Rematch or share it.</p></li>
+                <li><span aria-hidden="true">01</span><p><b>Ask around.</b> Pete has specific tells and quirks. Put the counter in your description to turn his weakness against him.</p></li>
+                <li><span aria-hidden="true">02</span><p><b>Write one line.</b> Invent anyone you like. The AI inks vivid details and signed moves while keeping the spirit of your idea.</p></li>
+                <li><span aria-hidden="true">03</span><p><b>Three-bout ticket.</b> Test your contender in a 3-bout card. Return to your corner after each bout to switch up your round-four tactic.</p></li>
+                <li><span aria-hidden="true">04</span><p><b>Watch the tape.</b> Each bout runs up to seven rounds or a knockout. Share the link or check your scrapbook records.</p></li>
             </ol>
             <p class="how-footnote">Practice cards use local rules. Connect Pollinations to ink with AI; each card uses one text call.</p>
             <button class="how-close" type="button" data-action="close-how">Back to the corner <span aria-hidden="true">↗</span></button>
+        </dialog>
+
+        <dialog class="zoom-dialog" data-zoom-dialog aria-labelledby="zoom-name">
+            <div class="zoom-card">
+                <button class="zoom-close" type="button" data-action="close-zoom" aria-label="Close portrait zoom">✕</button>
+                <div class="zoom-media" data-zoom-media></div>
+                <div class="zoom-info">
+                    <span class="eyebrow" data-zoom-tag>TRADING CARD PORTRAIT</span>
+                    <h3 id="zoom-name" data-zoom-name></h3>
+                    <p data-zoom-line></p>
+                </div>
+            </div>
         </dialog>
 
         <footer class="footer">

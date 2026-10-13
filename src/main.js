@@ -26,7 +26,19 @@ const soundLabel = $("[data-sound-label]");
 const authState = $("[data-auth-state]");
 const howDialog = $("[data-how-dialog]");
 const startFightButton = $("[data-action='start-fight']");
-const rematchButton = $("[data-action='rematch']");
+const returnCornerButton = $("[data-action='return-corner']");
+const seriesStamp = $("[data-series-stamp]");
+const matchmakerSub = $("[data-matchmaker-sub]");
+const homeHpVal = $("[data-home-hp-val]");
+const homeHpBar = $("[data-home-hp-bar]");
+const awayHpVal = $("[data-away-hp-val]");
+const awayHpBar = $("[data-away-hp-bar]");
+const zoomDialog = $("[data-zoom-dialog]");
+const zoomMedia = $("[data-zoom-media]");
+const zoomName = $("[data-zoom-name]");
+const zoomLine = $("[data-zoom-line]");
+const zoomTag = $("[data-zoom-tag]");
+const closeZoomButton = $("[data-action='close-zoom']");
 const homeAvatar = $("[data-home-avatar]");
 const awayAvatar = $("[data-away-avatar]");
 const challengerName = $("[data-challenger-name]");
@@ -45,6 +57,10 @@ const forgeMessages = [
     "Setting the opening odds against Pigeon Pete…",
 ];
 let forgeTimer = null;
+const MAX_BOUTS = 3;
+let boutNumber = 1;
+let seriesWins = 0;
+let seriesLosses = 0;
 let fightInProgress = false;
 let tactic = "push";
 let currentLine = "";
@@ -103,11 +119,27 @@ form.addEventListener("submit", async (event) => {
     event.preventDefault();
     currentLine = lineInput.value.trim().replace(/\s+/g, " ");
     if (!scoutAnswer.textContent) {
-        status.textContent = "Get the word from the corner before you write your contender.";
+        status.innerHTML = `
+            <span class="status-manicule" aria-hidden="true">
+                <svg viewBox="0 0 32 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M30 4v12" />
+                    <path d="M26 3v14" />
+                    <path d="M22 3v14" />
+                    <path d="M22 6c-2-3-6-3-8-1l-3 3" />
+                    <path d="M12 8H3c-1.1 0-2 .9-2 2s.9 2 2 2h9" />
+                    <path d="M12 12h4c1.1 0 2 .7 2 1.5s-.9 1.5-2 1.5h-3" />
+                    <path d="M13 15h4c1.1 0 2 .7 2 1.5s-.9 1.5-2 1.5h-4" />
+                </svg>
+            </span>
+            <span>Get the word from the corner before you write your contender.</span>
+        `;
         scoutButton.focus();
         return;
     }
     if (!currentLine) return;
+    boutNumber = 1;
+    seriesWins = 0;
+    seriesLosses = 0;
     rematch = 0;
     roundLog.replaceChildren();
     boutResult.hidden = true;
@@ -170,11 +202,35 @@ document.querySelectorAll("[data-tactic]").forEach((button) => {
 });
 
 $("[data-action='start-fight']").addEventListener("click", () => playFight());
-$("[data-action='rematch']").addEventListener("click", () => {
-    rematch += 1;
-    randomizeTaglines(true);
-    renderChallengerCard(CORNER_RUMOURS[currentRumourIndex]);
-    playFight();
+returnCornerButton?.addEventListener("click", () => {
+    if (boutNumber <= MAX_BOUTS && returnCornerButton.dataset.action === "return-corner") {
+        fightPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+        randomizeTaglines(true);
+        renderChallengerCard(CORNER_RUMOURS[currentRumourIndex]);
+    } else {
+        lineInput.readOnly = false;
+        lineInput.value = "";
+        count.textContent = "0";
+        const submitButton = form.querySelector("[type='submit']");
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerHTML = 'Make the intro <span aria-hidden="true">↗</span>';
+        }
+        form.setAttribute("aria-busy", "false");
+        renderAuthState();
+        currentFighter = null;
+        boutNumber = 1;
+        seriesWins = 0;
+        seriesLosses = 0;
+        rematch = 0;
+        fightPanel.hidden = true;
+        boutResult.hidden = true;
+        if (seriesStamp) seriesStamp.textContent = `BOUT 01 / 03`;
+        if (matchmakerSub) matchmakerSub.textContent = `BOUT 01 / 03 · SEVEN ROUNDS`;
+        status.textContent = "A good line can beat a bad matchup.";
+        $("#top")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        lineInput.focus();
+    }
 });
 $("[data-action='share']").addEventListener("click", shareFight);
 $("[data-action='how']").addEventListener("click", showHowToPlay);
@@ -255,6 +311,8 @@ function renderChallengerCard(rumour) {
     const challenger = makeChallenger(rumour, rematch);
     if (challengerName) challengerName.textContent = challenger.name;
     if (challengerLine) challengerLine.textContent = `“${challenger.line}”`;
+    if (awayHpVal) awayHpVal.textContent = `${challenger.maxHp} HP`;
+    if (awayHpBar) awayHpBar.style.width = "100%";
     if (challengerTraits) {
         challengerTraits.replaceChildren(
             makeTrait("Strength", challenger.strength),
@@ -286,6 +344,12 @@ function showDossier(line, fighter, fromPollinations = false) {
     $("[data-fighter-name]").textContent = fighter.name;
     $(".corner-home .corner-label b").textContent = fighter.name;
     $("[data-fighter-line]").textContent = `“${line}”`;
+    if (homeHpVal) homeHpVal.textContent = `${fighter.maxHp} HP`;
+    if (homeHpBar) homeHpBar.style.width = "100%";
+    if (seriesStamp) seriesStamp.textContent = `BOUT 01 / 03`;
+    if (matchmakerSub) matchmakerSub.textContent = `BOUT 01 / 03 · SEVEN ROUNDS`;
+    startFightButton.innerHTML = 'Ring Bout 1 <span aria-hidden="true">↗</span>';
+    startFightButton.disabled = false;
     const [style, mark] = fighterStyle(line, fighter.look);
     $("[data-home-look]").textContent = `${mark} DIVISION · CONTENDER`;
     const homeArt = $(".home-art");
@@ -368,7 +432,7 @@ async function playFight() {
     if (!currentLine || fightInProgress) return;
     fightInProgress = true;
     startFightButton.disabled = true;
-    rematchButton.disabled = true;
+    if (returnCornerButton) returnCornerButton.disabled = true;
     $("[data-action='share']").disabled = true;
     if (resultStampWrap) resultStampWrap.hidden = true;
     const activeRumour = CORNER_RUMOURS[currentRumourIndex];
@@ -384,7 +448,7 @@ async function playFight() {
 
     homePips.forEach((pip) => pip.classList.add("pip-on"));
     awayPips.forEach((pip) => pip.classList.add("pip-on"));
-    if (healthStatus) healthStatus.textContent = "ROUND 1 · BOUT UNDERWAY";
+    if (healthStatus) healthStatus.textContent = `BOUT ${boutNumber} OF 3 · UNDERWAY`;
 
     roundLog.replaceChildren();
     $("[data-result-title]").textContent = "The bell goes";
@@ -404,7 +468,7 @@ async function playFight() {
 
         if (healthStatus) {
             const roundLabel = event.round === 8 ? "TIE-BREAKER" : `ROUND ${event.round} OF 7`;
-            healthStatus.textContent = `${roundLabel} · ${event.homeHp}HP vs ${event.awayHp}HP`;
+            healthStatus.textContent = `BOUT ${boutNumber} · ${roundLabel} · ${event.homeHp}HP vs ${event.awayHp}HP`;
         }
 
         if (event.damage > 0) {
@@ -433,8 +497,10 @@ async function playFight() {
     verdictEntry.scrollIntoView({ behavior: "smooth", block: "end" });
 
     if (bout.won) {
+        seriesWins += 1;
         playWin();
     } else {
+        seriesLosses += 1;
         playLoss();
     }
     if (healthStatus) {
@@ -450,8 +516,35 @@ async function playFight() {
     $("[data-result-title]").textContent = bout.won
         ? `${bout.fighter.name} wins by ${bout.verdict.toLowerCase()}`
         : `${bout.challenger.name} wins by ${bout.verdict.toLowerCase()}`;
-    startFightButton.disabled = false;
-    rematchButton.disabled = false;
+
+    if (boutNumber < MAX_BOUTS) {
+        boutNumber += 1;
+        rematch = boutNumber - 1;
+        startFightButton.disabled = false;
+        startFightButton.innerHTML = `Ring Bout 0${boutNumber} <span aria-hidden="true">↗</span>`;
+        if (matchmakerSub) matchmakerSub.textContent = `BOUT 0${boutNumber} / 03 · SEVEN ROUNDS`;
+        if (seriesStamp) seriesStamp.textContent = `BOUT 0${boutNumber} / 03`;
+        if (returnCornerButton) {
+            returnCornerButton.textContent = `RETURN TO CORNER FOR BOUT 0${boutNumber} ↑`;
+            returnCornerButton.dataset.action = "return-corner";
+            returnCornerButton.disabled = false;
+        }
+        $("[data-fight-status]").textContent = `Bout 0${boutNumber - 1} finished (${bout.won ? "Win" : "Loss"}). Pick your corner call for Bout 0${boutNumber}.`;
+    } else {
+        startFightButton.disabled = true;
+        startFightButton.innerHTML = 'Series Complete <span aria-hidden="true">✓</span>';
+        const seriesWon = seriesWins > seriesLosses;
+        const seriesVerdict = seriesWon ? "SERIES WON" : "SERIES LOST";
+        if (matchmakerSub) matchmakerSub.textContent = `SERIES CONCLUDED · ${seriesWins}W - ${seriesLosses}L`;
+        if (seriesStamp) seriesStamp.textContent = `${seriesWins}W - ${seriesLosses}L`;
+        if (returnCornerButton) {
+            returnCornerButton.textContent = `SERIES ${seriesVerdict} (${seriesWins}W - ${seriesLosses}L) · DRAFT NEW CONTENDER ↑`;
+            returnCornerButton.dataset.action = "new-card";
+            returnCornerButton.disabled = false;
+        }
+        $("[data-fight-status]").textContent = `3 Bouts Concluded · ${seriesVerdict} (${seriesWins}W - ${seriesLosses}L). Draft a new contender.`;
+    }
+
     $("[data-action='share']").disabled = false;
     fightInProgress = false;
     saveBout({
@@ -599,6 +692,53 @@ function showHowToPlay() {
 }
 
 $("[data-action='close-how']").addEventListener("click", () => howDialog.close());
+howDialog?.addEventListener("click", (event) => {
+    const rect = howDialog.getBoundingClientRect();
+    const isInDialog = (
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width
+    );
+    if (!isInDialog) howDialog.close();
+});
+
+function openZoom(isChallenger) {
+    if (!zoomDialog) return;
+    const avatarEl = isChallenger ? awayAvatar : homeAvatar;
+    const fighter = isChallenger ? makeChallenger(CORNER_RUMOURS[currentRumourIndex], rematch) : currentFighter;
+    if (!fighter && !isChallenger) return;
+    const img = avatarEl?.querySelector("img");
+    const svg = avatarEl?.querySelector("svg");
+    if (zoomMedia) {
+        if (img) {
+            zoomMedia.innerHTML = `<img src="${img.src}" alt="${fighter?.name || 'Portrait'}" />`;
+        } else if (svg) {
+            zoomMedia.innerHTML = svg.outerHTML;
+        }
+    }
+    if (zoomTag) zoomTag.textContent = isChallenger ? "HOUSE CHAMPION PORTRAIT" : "CONTENDER PORTRAIT";
+    if (zoomName) zoomName.textContent = fighter?.name || (isChallenger ? "Pigeon Pete" : "The Unknown");
+    if (zoomLine) zoomLine.textContent = isChallenger ? `“${fighter?.line || ''}”` : `“${currentLine}”`;
+    zoomDialog.showModal();
+}
+
+homeAvatar?.addEventListener("click", () => openZoom(false));
+awayAvatar?.addEventListener("click", () => openZoom(true));
+closeZoomButton?.addEventListener("click", () => zoomDialog?.close());
+zoomDialog?.addEventListener("click", (event) => {
+    const card = zoomDialog.querySelector(".zoom-card");
+    if (!card) return;
+    const rect = card.getBoundingClientRect();
+    const isInCard = (
+        rect.top <= event.clientY &&
+        event.clientY <= rect.top + rect.height &&
+        rect.left <= event.clientX &&
+        event.clientX <= rect.left + rect.width
+    );
+    if (!isInCard) zoomDialog.close();
+});
+
 $("[data-action='clear-tape']")?.addEventListener("click", () => clearTape());
 
 applyRumour(currentRumourIndex);

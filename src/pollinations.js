@@ -45,6 +45,10 @@ function parseFighter(content, line) {
         kind: ["strike", "trick", "feint", "brace"].includes(move?.kind) ? move.kind : "strike",
     })) : [];
     if (moves.length !== 3 || moves.some((move) => !move.name)) throw new Error("The press left a few moves off the card.");
+    const seedNum = hashSeed(line);
+    const staminaRoll = (seedNum % 11) + 2;
+    const stats = balanceStats(fighter.stats);
+    const maxHp = 48 + stats.guard * 4 + staminaRoll;
     return {
         name: readableText(fighter.name, 36) || "The Unknown",
         line,
@@ -52,7 +56,9 @@ function parseFighter(content, line) {
         strength: readableText(fighter.strength, 180) || (fighter.hasExploit || fighter.hasCrisps ? "Spotted the flaw" : "A surprise or two"),
         weakness: readableText(fighter.weakness, 180) || "A short attention span",
         quirk: readableText(fighter.quirk, 180) || "Hears the crowd",
-        stats: balanceStats(fighter.stats),
+        stats,
+        maxHp,
+        hp: maxHp,
         specificity: Math.max(0, Math.min(3, Math.round(Number(fighter.specificity) || 0))),
         hasCrisps: fighter.hasCrisps === true || fighter.hasExploit === true,
         hasExploit: fighter.hasCrisps === true || fighter.hasExploit === true,
@@ -122,14 +128,13 @@ function hashSeed(str = "") {
 }
 
 export function getFighterAvatarUrl(fighter, isChallenger = false, token = null) {
-    const seed = hashSeed((fighter.name || "") + (fighter.look || "") + (fighter.line || ""));
     const subject = isChallenger
-        ? "a scruffy city pigeon fighter in green track shorts with taped wings, smug menacing grin"
+        ? "anthropomorphic pigeon mutant creature, feathered avian hybrid humanoid, grotesque pigeon bird head with sharp beak and yellow bird eyes, ruffled grey-green feathers, muscular bird-man torso, human-like bipedal stance, taped wings and clawed wing knuckles, green athletic shorts, menacing smug grin, no human face"
         : (fighter.look || fighter.name || "contender").slice(0, 140);
     const prompt = `Vintage underground boxing trading card portrait of ${subject}, bold graphic ink linework, retro pulp comic style, gritty basement arena lighting, character bust portrait, textured paper background --no text`;
     const encoded = encodeURIComponent(prompt);
     const authQuery = token ? `&key=${encodeURIComponent(token)}` : "";
-    return `https://gen.pollinations.ai/image/${encoded}?model=${encodeURIComponent(IMAGE_MODEL)}&width=256&height=256&nologo=true&seed=${seed}${authQuery}`;
+    return `https://gen.pollinations.ai/image/${encoded}?model=${encodeURIComponent(IMAGE_MODEL)}&width=768&height=768&nologo=true${authQuery}`;
 }
 
 export async function loadFighterAvatar(fighter, isChallenger = false, token = null) {

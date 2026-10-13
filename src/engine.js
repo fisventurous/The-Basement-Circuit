@@ -109,6 +109,9 @@ function makeChallenger(rumour = CORNER_RUMOURS[0], seed = 0) {
         },
     };
     const preset = presets[activeRumour.id] || presets.crisps;
+    const seedNum = hash(`${activeRumour.id}|${seed}`);
+    const staminaRoll = (seedNum % 9) + 4;
+    const maxHp = 50 + preset.guard * 4 + staminaRoll;
     return {
         name: "Pigeon Pete",
         title: preset.title,
@@ -119,6 +122,8 @@ function makeChallenger(rumour = CORNER_RUMOURS[0], seed = 0) {
         quirk: preset.flaw,
         stats: { power: preset.power, speed: preset.speed, guard: preset.guard },
         moves: preset.moves,
+        maxHp,
+        hp: maxHp,
     };
 }
 
@@ -217,10 +222,15 @@ function makeFighter(line, rumour = CORNER_RUMOURS[0]) {
     const moves = hasExploit
         ? rumour.moves
         : [{ name: "Body shot", kind: "strike" }, { name: "Dust-cloud feint", kind: "feint" }, { name: "Tuck and roll", kind: "brace" }];
+    const seedNum = hash(`${line}|${rumour?.id || "home"}`);
+    const staminaRoll = (seedNum % 11) + 2;
+    const maxHp = 48 + stats.guard * 4 + staminaRoll;
     return {
         name: fighterName(line),
         line,
         stats,
+        maxHp,
+        hp: maxHp,
         specificity,
         hasCrisps: hasExploit,
         hasExploit,
@@ -267,6 +277,7 @@ function restoreFighter(value, line, rumour = CORNER_RUMOURS[0]) {
     })) : defaults.moves;
     while (moves.length < 3) moves.push(defaults.moves[moves.length]);
     const hasExploit = value.hasExploit === true || value.hasCrisps === true || Boolean(rumour?.pattern?.test(line));
+    const maxHp = Number(value.maxHp) || defaults.maxHp;
     return {
         ...defaults,
         name: readable(value.name, defaults.name, 36),
@@ -276,6 +287,8 @@ function restoreFighter(value, line, rumour = CORNER_RUMOURS[0]) {
         weakness: readable(value.weakness, defaults.weakness, 180),
         quirk: readable(value.quirk, defaults.quirk, 180),
         stats,
+        maxHp,
+        hp: maxHp,
         specificity: clamp(Number(value.specificity) || 0, 0, 3),
         hasCrisps: hasExploit,
         hasExploit,
@@ -284,7 +297,7 @@ function restoreFighter(value, line, rumour = CORNER_RUMOURS[0]) {
 }
 
 function combatant(fighter, isHome) {
-    const maxHp = 56 + fighter.stats.guard * 4;
+    const maxHp = Number(fighter.maxHp) || (56 + fighter.stats.guard * 4);
     return {
         ...fighter,
         isHome,

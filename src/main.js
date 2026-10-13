@@ -1,6 +1,6 @@
-import { makeFighter, restoreFighter, simulateFight, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js";
+import { makeFighter, makeChallenger, restoreFighter, simulateFight, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js";
 import { connectPollinations, disconnectPollinations, getAccessToken, takeDraft } from "./auth.js";
-import { forgeFighter } from "./pollinations.js";
+import { forgeFighter, getFighterAvatarUrl, loadFighterAvatar } from "./pollinations.js";
 import { isSoundEnabled, toggleSound, playBell, playHit, playExploit, playMiss, playWin, playLoss } from "./audio.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -27,6 +27,14 @@ const authState = $("[data-auth-state]");
 const howDialog = $("[data-how-dialog]");
 const startFightButton = $("[data-action='start-fight']");
 const rematchButton = $("[data-action='rematch']");
+const homeAvatar = $("[data-home-avatar]");
+const awayAvatar = $("[data-away-avatar]");
+const challengerName = $("[data-challenger-name]");
+const challengerLine = $("[data-challenger-line]");
+const challengerTraits = $("[data-challenger-traits]");
+const challengerMoves = $("[data-challenger-moves]");
+const resultStampWrap = $("[data-result-stamp-wrap]");
+const resultStamp = $("[data-result-stamp]");
 const forgePanel = $("[data-forge-panel]");
 const forgeHeading = $("[data-forge-heading]");
 const forgeStep = $("[data-forge-step]");
@@ -53,6 +61,9 @@ function applyRumour(index) {
     scoutAnswer.textContent = "";
     scoutButton.disabled = false;
     scoutButton.querySelector("span").textContent = "ASK AROUND";
+    if (fightPanel && !fightPanel.hidden) {
+        renderChallengerCard(rumour);
+    }
 }
 
 function randomizeTaglines(preserveHomeIfDossier = false) {
@@ -159,6 +170,7 @@ $("[data-action='start-fight']").addEventListener("click", () => playFight());
 $("[data-action='rematch']").addEventListener("click", () => {
     rematch += 1;
     randomizeTaglines(true);
+    renderChallengerCard(CORNER_RUMOURS[currentRumourIndex]);
     playFight();
 });
 $("[data-action='share']").addEventListener("click", shareFight);
@@ -212,6 +224,56 @@ function fighterStyle(line, look = "") {
     return match ? [match[0], match[2]] : ["corner", "CORNER"];
 }
 
+async function renderAvatar(container, fighter, isChallenger = false) {
+    if (!container) return;
+    const token = getAccessToken();
+    container.innerHTML = isChallenger
+        ? '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M14 3a6 6 0 0 0-6 6c0 1.2.4 2.3 1 3.2L4 16v3h3l3.5-3.5c.5.3 1 .5 1.5.5h1l6-2v-3l-2-1c.7-.9 1-2 1-3a6 6 0 0 0-6-6zm-1 4a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm-3 8.5l-1.5 1.5H6.5l3-3 1 1z"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a5 5 0 0 0-5 5v1.2A5 5 0 0 0 4 13v1a3 3 0 0 0 3 3h1v4a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-4h1a3 3 0 0 0 3-3v-1a5 5 0 0 0-3-4.8V7a5 5 0 0 0-5-5zm-3 7a3 3 0 1 1 6 0v1h-6V9zm7 5a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-1h8v1z"/></svg>';
+
+    if (!token) return;
+
+    try {
+        const objectUrl = await loadFighterAvatar(fighter, isChallenger, token);
+        if (objectUrl) {
+            const img = document.createElement("img");
+            img.src = objectUrl;
+            img.alt = fighter.name || (isChallenger ? "Pigeon Pete" : "Contender");
+            img.loading = "lazy";
+            img.decoding = "async";
+            container.replaceChildren(img);
+        }
+    } catch {
+        // Retain the SVG silhouette
+    }
+}
+
+function renderChallengerCard(rumour) {
+    const challenger = makeChallenger(rumour, rematch);
+    if (challengerName) challengerName.textContent = challenger.name;
+    if (challengerLine) challengerLine.textContent = `“${challenger.line}”`;
+    if (challengerTraits) {
+        challengerTraits.replaceChildren(
+            makeTrait("Strength", challenger.strength),
+            makeTrait("Weakness", challenger.weakness),
+            makeTrait("Quirk", challenger.quirk),
+            makeTrait("Power", String(challenger.stats.power)),
+            makeTrait("Speed", String(challenger.stats.speed)),
+            makeTrait("Guard", String(challenger.stats.guard)),
+        );
+        if (challenger.look) challengerTraits.append(makeTrait("Look", challenger.look));
+    }
+    if (challengerMoves) {
+        challengerMoves.replaceChildren(...(challenger.moves ?? []).map((move) => {
+            const chip = document.createElement("span");
+            chip.className = "move-chip";
+            chip.textContent = move.name.toLocaleLowerCase("en-GB").replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-GB"));
+            return chip;
+        }));
+    }
+    renderAvatar(awayAvatar, challenger, true);
+}
+
 function showDossier(line, fighter, fromPollinations = false) {
     currentFighter = fighter;
     lineInput.readOnly = true;
@@ -243,9 +305,12 @@ function showDossier(line, fighter, fromPollinations = false) {
         chip.textContent = move.name.toLocaleLowerCase("en-GB").replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-GB"));
         return chip;
     }));
+    renderAvatar(homeAvatar, fighter, false);
+    renderChallengerCard(CORNER_RUMOURS[currentRumourIndex]);
     $("[data-fight-status]").textContent = fromPollinations ? "Forged by Pollinations · one text call." : "Local rules preview · no Pollen used.";
     fightPanel.hidden = false;
     boutResult.hidden = true;
+    if (resultStampWrap) resultStampWrap.hidden = true;
     status.textContent = fromPollinations ? "Your fighter’s on the card. Pick a corner call." : "Practice card ready. Connect Pollen to let the artist take a turn.";
     fightPanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -280,6 +345,13 @@ function makeRoundEntry(event) {
         damage.textContent = `-${event.damage} YOU`;
     }
 
+    if (event.damage > 0) {
+        const puff = document.createElement("span");
+        puff.className = "dust-puff";
+        puff.setAttribute("aria-hidden", "true");
+        damage.append(puff);
+    }
+
     item.append(round, mark, description, damage);
     return item;
 }
@@ -294,6 +366,7 @@ async function playFight() {
     startFightButton.disabled = true;
     rematchButton.disabled = true;
     $("[data-action='share']").disabled = true;
+    if (resultStampWrap) resultStampWrap.hidden = true;
     const activeRumour = CORNER_RUMOURS[currentRumourIndex];
     const bout = simulateFight(currentLine, tactic, rematch, currentFighter ?? makeFighter(currentLine, activeRumour), activeRumour);
 
@@ -307,7 +380,7 @@ async function playFight() {
 
     homePips.forEach((pip) => pip.classList.add("pip-on"));
     awayPips.forEach((pip) => pip.classList.add("pip-on"));
-    if (healthStatus) healthStatus.textContent = "ROUND 1 OF 6 · BOUT UNDERWAY";
+    if (healthStatus) healthStatus.textContent = "ROUND 1 OF 7 · BOUT UNDERWAY";
 
     roundLog.replaceChildren();
     $("[data-result-title]").textContent = "The bell goes";
@@ -316,7 +389,9 @@ async function playFight() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     for (let index = 0; index < bout.log.length; index += 1) {
         const event = bout.log[index];
-        roundLog.append(makeRoundEntry(event));
+        const entry = makeRoundEntry(event);
+        roundLog.append(entry);
+        entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
         const homePipsActive = Math.ceil((event.homeHp / event.homeMaxHp) * homePips.length);
         const awayPipsActive = Math.ceil((event.awayHp / event.awayMaxHp) * awayPips.length);
@@ -324,7 +399,7 @@ async function playFight() {
         awayPips.forEach((pip, idx) => pip.classList.toggle("pip-on", idx < awayPipsActive));
 
         if (healthStatus) {
-            healthStatus.textContent = `ROUND ${event.round} OF 6 · ${event.homeHp}HP vs ${event.awayHp}HP`;
+            healthStatus.textContent = `ROUND ${event.round} OF 7 · ${event.homeHp}HP vs ${event.awayHp}HP`;
         }
 
         if (event.damage > 0) {
@@ -354,6 +429,12 @@ async function playFight() {
     } else {
         playLoss();
         if (healthStatus) healthStatus.textContent = "BOUT OVER · THE HOUSE HOLDS";
+    }
+
+    if (resultStampWrap && resultStamp) {
+        resultStampWrap.hidden = false;
+        resultStamp.className = `result-stamp ${bout.won ? "is-win" : "is-loss"}`;
+        resultStamp.textContent = bout.won ? "UPSET WINNER" : "HOUSE PREVAILS";
     }
 
     $("[data-result-title]").textContent = bout.won ? "Upset of the night" : "The house holds";

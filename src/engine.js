@@ -1,11 +1,3 @@
-const challenger = {
-    name: "Pigeon Pete",
-    power: 4,
-    speed: 7,
-    guard: 4,
-    maxHp: 76,
-    hp: 76,
-};
 
 const CORNER_RUMOURS = [
     {
@@ -76,6 +68,60 @@ const CORNER_RUMOURS = [
     },
 ];
 
+function makeChallenger(rumour = CORNER_RUMOURS[0], seed = 0) {
+    const activeRumour = rumour || CORNER_RUMOURS[0];
+    const presets = {
+        crisps: {
+            title: "Crumb-Drunk Pete",
+            power: 5, speed: 6, guard: 4,
+            flaw: "Cannot resist the crinkle of greasy chip wrappers.",
+            moves: [{ name: "Crumb flurry", kind: "strike" }, { name: "Wing tax", kind: "trick" }, { name: "Hop back", kind: "brace" }],
+        },
+        mirrors: {
+            title: "Flashy Pete",
+            power: 4, speed: 7, guard: 4,
+            flaw: "Stares at polished metal and pecks his own reflection.",
+            moves: [{ name: "Mirror dart", kind: "feint" }, { name: "Beak jab", kind: "strike" }, { name: "Wing shield", kind: "brace" }],
+        },
+        water: {
+            title: "Canal-Drenched Pete",
+            power: 6, speed: 4, guard: 5,
+            flaw: "Waterlogged primary feathers double his turning circle.",
+            moves: [{ name: "Heavy barge", kind: "strike" }, { name: "Gutter splash", kind: "trick" }, { name: "Duck low", kind: "brace" }],
+        },
+        horns: {
+            title: "Rattled Pete",
+            power: 4, speed: 6, guard: 5,
+            flaw: "Loud brass bells disorient his inner ear completely.",
+            moves: [{ name: "Diving elbow", kind: "trick" }, { name: "Wing swipe", kind: "strike" }, { name: "Cover head", kind: "brace" }],
+        },
+        felines: {
+            title: "Skittish Pete",
+            power: 5, speed: 7, guard: 3,
+            flaw: "Still owes the rooftop ginger tom three tail feathers.",
+            moves: [{ name: "Alley scramble", kind: "feint" }, { name: "Spur claw", kind: "strike" }, { name: "Perch leap", kind: "brace" }],
+        },
+        owls: {
+            title: "Spooked Pete",
+            power: 6, speed: 5, guard: 4,
+            flaw: "Frozen raptor statues reduce him to shivering stone.",
+            moves: [{ name: "Panic flurry", kind: "strike" }, { name: "Feather feint", kind: "feint" }, { name: "Tuck tight", kind: "brace" }],
+        },
+    };
+    const preset = presets[activeRumour.id] || presets.crisps;
+    return {
+        name: "Pigeon Pete",
+        title: preset.title,
+        line: "The cellar champion · undefeated in the alleyway circuit",
+        look: "A scruffy street pigeon birdman in green track shorts, scarred beak, taped wing knuckles",
+        strength: "Cobblestone grit and lightning wing-hooks.",
+        weakness: activeRumour.clue,
+        quirk: preset.flaw,
+        stats: { power: preset.power, speed: preset.speed, guard: preset.guard },
+        moves: preset.moves,
+    };
+}
+
 const PETE_TAGLINES = [
     "LOCAL MENACE · EST. TUESDAY",
     "CRUMB MAGNATE · 14 FIGHTS UNDEFEATED",
@@ -83,6 +129,17 @@ const PETE_TAGLINES = [
     "SQUARE MILE TYRANT · NO WEIGH-IN",
     "COBBLESTONE TERROR · SHARP BEAK",
     "FEATHERWEIGHT DICTATOR · 0 TAXES",
+    "CHIP BIN BARON · ZERO REMORSE",
+    "STATUE CLIMBER · SELF-APPOINTED",
+    "BREADCRUMB BANDIT · STILL HUNGRY",
+    "BUS STOP BOSS · NO TICKET",
+    "LAMPPOST LORD · RENT FREE",
+    "STALE BREAD SCHOLAR · CRUMBS OVER CASH",
+    "SEAGULL SLAYER · ALLEGEDLY",
+    "FLAPPY HEAVYWEIGHT · SKIPS LEG DAY",
+    "PAVEMENT PROFESSOR · BITES FIRST",
+    "RAINY DAY ROYALTY · ALWAYS DAMP",
+    "PIGEONHOLED · NOT FOR LONG",
 ];
 
 const HOME_TAGLINES = [
@@ -92,6 +149,17 @@ const HOME_TAGLINES = [
     "CHIP SHOP REGULAR · UNTESTED",
     "ROUND FOUR SPECIALIST · RAW GRIT",
     "FLAT CAP & BANDAGES · READY",
+    "TEA BREAK ASSASSIN · BACK BY FIVE",
+    "DRESSING GOWN DESTROYER · HALF AWAKE",
+    "CAR PARK CHAMPION · PAID FOR 2 HOURS",
+    "ONE-LINER LEGEND · NO SECOND DRAFT",
+    "CORNER SHOP KNIGHT · EXACT CHANGE",
+    "SUNDAY LEAGUE HERO · KNEES GONE",
+    "BORROWED GLOVES · BIG HOPES",
+    "SELF-FUNDED UNDERDOG · NO SPONSORS",
+    "LAST MINUTE ENTRY · FIRST CLASS NERVES",
+    "WELL-READ UNDERDOG · ONE LINE ONLY",
+    "SPARE KEY HOLDER · EVERYONE'S NEIGHBOUR",
 ];
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -166,14 +234,20 @@ function makeFighter(line, rumour = CORNER_RUMOURS[0]) {
 
 function restoreFighter(value, line, rumour = CORNER_RUMOURS[0]) {
     if (!value || typeof value !== "object") return makeFighter(line, rumour);
-    const clean = (text, fallback, limit) => typeof text === "string"
-        ? text.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit) || fallback
-        : fallback;
+    const clean = (text, fallback, limit) => {
+        if (typeof text !== "string") return fallback;
+        const normalized = text.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+        if (!normalized) return fallback;
+        if (normalized.length <= limit) return normalized;
+        const sliced = normalized.slice(0, limit);
+        const lastSpace = sliced.lastIndexOf(" ");
+        return (lastSpace > limit * 0.65 ? sliced.slice(0, lastSpace) : sliced).trim() || fallback;
+    };
     const readable = (text, fallback, limit) => {
-        const value = clean(text, fallback, limit);
-        return value === value.toLocaleUpperCase("en-GB")
-            ? value.toLocaleLowerCase("en-GB").replace(/(^|\s)\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-GB"))
-            : value;
+        const val = clean(text, fallback, limit);
+        return val === val.toLocaleUpperCase("en-GB")
+            ? val.toLocaleLowerCase("en-GB").replace(/(^|\s)\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-GB"))
+            : val;
     };
     const stats = Object.fromEntries(["power", "speed", "guard"].map((key) => [key, clamp(Number(value.stats?.[key]) || 1, 1, 8)]));
     while (stats.power + stats.speed + stats.guard > 15) {
@@ -188,19 +262,19 @@ function restoreFighter(value, line, rumour = CORNER_RUMOURS[0]) {
     }
     const defaults = makeFighter(line, rumour);
     const moves = Array.isArray(value.moves) ? value.moves.slice(0, 3).map((move, index) => ({
-        name: readable(move?.name, defaults.moves[index]?.name ?? "Body shot", 28),
+        name: readable(move?.name, defaults.moves[index]?.name ?? "Body shot", 36),
         kind: ["strike", "trick", "feint", "brace"].includes(move?.kind) ? move.kind : "strike",
     })) : defaults.moves;
     while (moves.length < 3) moves.push(defaults.moves[moves.length]);
     const hasExploit = value.hasExploit === true || value.hasCrisps === true || Boolean(rumour?.pattern?.test(line));
     return {
         ...defaults,
-        name: readable(value.name, defaults.name, 32),
+        name: readable(value.name, defaults.name, 36),
         line,
-        look: readable(value.look, defaults.look, 120),
-        strength: readable(value.strength, defaults.strength, 48),
-        weakness: readable(value.weakness, defaults.weakness, 48),
-        quirk: readable(value.quirk, defaults.quirk, 48),
+        look: readable(value.look, defaults.look, 240),
+        strength: readable(value.strength, defaults.strength, 180),
+        weakness: readable(value.weakness, defaults.weakness, 180),
+        quirk: readable(value.quirk, defaults.quirk, 180),
         stats,
         specificity: clamp(Number(value.specificity) || 0, 0, 3),
         hasCrisps: hasExploit,
@@ -210,16 +284,73 @@ function restoreFighter(value, line, rumour = CORNER_RUMOURS[0]) {
 }
 
 function combatant(fighter, isHome) {
-    return { ...fighter, isHome, maxHp: 56 + fighter.stats.guard * 4, hp: 56 + fighter.stats.guard * 4, guardUp: false, cornerCalled: false };
+    const maxHp = 56 + fighter.stats.guard * 4;
+    return {
+        ...fighter,
+        isHome,
+        baseSpeed: fighter.stats.speed,
+        maxHp,
+        hp: maxHp,
+        guardUp: false,
+        cornerCalled: false,
+    };
 }
 
-function narrate(actor, target, move, kind, damage, critical, counter, activeRumour) {
-    if (kind === "brace") return `${actor.name} uses ${move}. ${target.name} has to find another way in.`;
-    if (kind === "feint") return damage ? `${actor.name} sells ${move}. ${target.name} buys it at full price.` : `${actor.name} tries ${move}. ${target.name} stays patient.`;
-    if (!damage) return `${actor.name} swings. ${target.name} slips out of range.`;
-    if (counter) return activeRumour?.counterText ? activeRumour.counterText(actor) : `${actor.name} exploits the secret flaw. Pete forgets the entire sport.`;
-    if (critical) return `${actor.name} catches ${target.name} clean. The front row sits down by accident.`;
-    return `${actor.name} lands ${move}. The crowd makes a noise.`;
+function narrate(actor, target, move, kind, damage, critical, counter, activeRumour, random = Math.random) {
+    if (kind === "brace") {
+        const lines = [
+            `${actor.name} anchors down behind ${move}. ${target.name} has to reset the angle.`,
+            `${actor.name} sets a heavy guard with ${move}. Nothing getting through cleanly.`,
+            `${actor.name} uses ${move}. ${target.name} probes but finds only elbows and gloves.`,
+        ];
+        return lines[Math.floor(random() * lines.length)];
+    }
+    if (kind === "feint") {
+        if (damage) {
+            const lines = [
+                `${actor.name} sells ${move} completely. ${target.name} buys it at full price.`,
+                `${actor.name} disguises ${move} smoothly. ${target.name} bites and leaves an opening.`,
+                `${actor.name} fakes ${move} and steps inside. ${target.name} looks the wrong way.`,
+            ];
+            return lines[Math.floor(random() * lines.length)];
+        }
+        const lines = [
+            `${actor.name} tries ${move}. ${target.name} stays patient and doesn’t flinch.`,
+            `${actor.name} shows ${move}, but ${target.name} reads the deception calmly.`,
+        ];
+        return lines[Math.floor(random() * lines.length)];
+    }
+    if (!damage) {
+        const lines = [
+            `${actor.name} swings with ${move}. ${target.name} slips out of range.`,
+            `${actor.name} uncorks ${move}, but ${target.name} bobs cleanly under the breeze.`,
+            `${target.name} times the distance perfectly and steps around ${actor.name}’s ${move}.`,
+            `${actor.name} overextends on ${move}. ${target.name} lets the leather pass harmlessly.`,
+            `${actor.name} launches ${move}, but only catches cellar draught.`,
+        ];
+        return lines[Math.floor(random() * lines.length)];
+    }
+    if (counter) {
+        return activeRumour?.counterText ? activeRumour.counterText(actor) : `${actor.name} exploits the secret flaw. Pete forgets the entire sport.`;
+    }
+    if (critical) {
+        const lines = [
+            `${actor.name} catches ${target.name} clean with ${move}. The front row scrambles for cover.`,
+            `${actor.name} detonates a vicious ${move}! ${target.name} spins like a top on the cobbles.`,
+            `${actor.name} connects flush with ${move}. That shot echoed off the cellar beams.`,
+            `${actor.name} lands ${move} with monstrous force. The referee winces in disbelief.`,
+        ];
+        return lines[Math.floor(random() * lines.length)];
+    }
+    const lines = [
+        `${actor.name} lands ${move}. The crowd roars in approval.`,
+        `${actor.name} steps inside and drives ${move} home on ${target.name}.`,
+        `${actor.name} connects with ${move}. Chalk dust flies off ${target.name}.`,
+        `${actor.name} snaps ${move} right through ${target.name}’s guard.`,
+        `${actor.name} times ${move} to perfection and scores to the ribs.`,
+        `${actor.name} catches ${target.name} off-balance with ${move}.`,
+    ];
+    return lines[Math.floor(random() * lines.length)];
 }
 
 function attack(actor, target, moveData, random, round, activeRumour) {
@@ -235,17 +366,19 @@ function attack(actor, target, moveData, random, round, activeRumour) {
             damage: 0,
             critical: false,
             counter: false,
-            text: narrate(actor, target, move, kind, 0, false, false, activeRumour),
+            text: narrate(actor, target, move, kind, 0, false, false, activeRumour, random),
             round,
             homeHp: actor.isHome ? actor.hp : target.hp,
             awayHp: actor.isHome ? target.hp : actor.hp,
             homeMaxHp: actor.isHome ? actor.maxHp : target.maxHp,
             awayMaxHp: actor.isHome ? target.maxHp : actor.maxHp,
+            homeSpeed: actor.isHome ? actor.stats.speed : target.stats.speed,
+            awaySpeed: actor.isHome ? target.stats.speed : actor.stats.speed,
         };
     }
     const hitChance = clamp(0.69 + (actor.stats.speed - target.stats.speed) * 0.025, 0.5, 0.9);
     const hit = random() < hitChance;
-    const critical = hit && random() < 0.04 + actor.specificity * 0.025;
+    const critical = hit && random() < 0.04 + (actor.specificity || 0) * 0.025;
     const counter = actor.isHome && (actor.hasExploit || actor.hasCrisps);
     const tactic = actor.isHome && round === 4 && !actor.cornerCalled ? actor.tactic : "";
     const moveScale = kind === "trick" ? 1.25 : kind === "feint" ? 0.75 : 1;
@@ -269,14 +402,18 @@ function attack(actor, target, moveData, random, round, activeRumour) {
         damage,
         critical,
         counter: Boolean(counter && damage > 0),
-        text: narrate(actor, target, move, kind, damage, critical, counter, activeRumour),
+        text: narrate(actor, target, move, kind, damage, critical, counter, activeRumour, random),
         round,
         homeHp: actor.isHome ? actor.hp : target.hp,
         awayHp: actor.isHome ? target.hp : actor.hp,
         homeMaxHp: actor.isHome ? actor.maxHp : target.maxHp,
         awayMaxHp: actor.isHome ? target.maxHp : actor.maxHp,
+        homeSpeed: actor.isHome ? actor.stats.speed : target.stats.speed,
+        awaySpeed: actor.isHome ? target.stats.speed : actor.stats.speed,
     };
 }
+
+const MAX_ROUNDS = 7;
 
 function simulateFight(line, tactic = "push", rematch = 0, fighterProfile = null, rumour = CORNER_RUMOURS[0]) {
     const activeRumour = rumour || CORNER_RUMOURS[0];
@@ -284,17 +421,16 @@ function simulateFight(line, tactic = "push", rematch = 0, fighterProfile = null
     const random = randomFrom(hash(`${line}|pigeon-pete|${rematch}|${activeRumour.id}`));
     const home = combatant(profile, true);
     home.tactic = tactic;
-    const away = combatant({
-        name: challenger.name,
-        stats: { power: challenger.power, speed: challenger.speed, guard: challenger.guard },
-        specificity: 1,
-        hasExploit: false,
-        hasCrisps: false,
-        moves: [{ name: "Wing tax", kind: "strike" }, { name: "Diving elbow", kind: "trick" }, { name: "Hop back", kind: "brace" }],
-    }, false);
+    const away = combatant(makeChallenger(activeRumour, rematch), false);
     const log = [];
 
-    for (let round = 1; round <= 6 && home.hp > 0 && away.hp > 0; round++) {
+    for (let round = 1; round <= MAX_ROUNDS && home.hp > 0 && away.hp > 0; round++) {
+        // Dynamic fatigue after round 3 and when wounded
+        if (round >= 4) {
+            home.stats.speed = Math.max(2, home.baseSpeed - (home.hp < home.maxHp * 0.4 ? 2 : 1));
+            away.stats.speed = Math.max(2, away.baseSpeed - (away.hp < away.maxHp * 0.4 ? 2 : 1));
+        }
+
         const first = home.stats.speed + random() * 4 >= away.stats.speed + random() * 4 ? home : away;
         const second = first === home ? away : home;
         for (const actor of [first, second]) {
@@ -305,17 +441,42 @@ function simulateFight(line, tactic = "push", rematch = 0, fighterProfile = null
         }
     }
 
-    const homeScore = home.hp / home.maxHp;
-    const awayScore = away.hp / away.maxHp;
-    const winner = home.hp > 0 && (away.hp <= 0 || homeScore > awayScore) ? home : away;
+    let winner;
+    let verdict;
+    if (home.hp <= 0) {
+        winner = away;
+        verdict = "KNOCKOUT";
+    } else if (away.hp <= 0) {
+        winner = home;
+        verdict = "KNOCKOUT";
+    } else {
+        const homePct = home.hp / home.maxHp;
+        const awayPct = away.hp / away.maxHp;
+        if (Math.abs(homePct - awayPct) >= 0.05) {
+            winner = homePct > awayPct ? home : away;
+            verdict = "UNANIMOUS DECISION";
+        } else {
+            const homeDamage = log.filter((e) => e.isHome).reduce((sum, e) => sum + e.damage, 0);
+            const awayDamage = log.filter((e) => !e.isHome).reduce((sum, e) => sum + e.damage, 0);
+            if (homeDamage !== awayDamage) {
+                winner = homeDamage > awayDamage ? home : away;
+                verdict = "SPLIT DECISION";
+            } else {
+                winner = home;
+                verdict = "UNDERGROUND VERDICT";
+            }
+        }
+    }
+
     return {
         fighter: home,
         challenger: away,
         winner: winner.name,
         won: winner === home,
         rounds: log.at(-1)?.round ?? 0,
+        verdict,
         log,
     };
 }
 
-export { CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES, makeFighter, restoreFighter, simulateFight };
+export { CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES, makeFighter, makeChallenger, restoreFighter, simulateFight };

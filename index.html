@@ -135,13 +135,44 @@
             </section>
 
             <section class="fight-panel" data-fight-panel hidden aria-labelledby="dossier-title">
-                <div class="dossier-head">
-                    <div><p class="eyebrow">THE MATCHMAKER’S CARD</p><h2 id="dossier-title" data-fighter-name></h2></div>
-                    <span class="dossier-number">CONTENDER<br /><b>NO. 01</b></span>
+                <div class="matchmaker-header">
+                    <div>
+                        <p class="eyebrow">TONIGHT’S TALE OF THE TAPE</p>
+                        <h2 id="dossier-title">The Matchmaker’s Programme</h2>
+                    </div>
+                    <span class="matchmaker-sub">SEVEN ROUNDS · THE ODD BELT</span>
                 </div>
-                <p class="dossier-line" data-fighter-line></p>
-                <div class="dossier-traits" data-fighter-traits></div>
-                <div class="move-strip"><span class="eyebrow">SIGNED MOVES</span><div data-fighter-moves></div></div>
+
+                <div class="dossier-grid">
+                    <article class="card-dossier card-home" aria-label="Contender card">
+                        <div class="dossier-head">
+                            <div class="dossier-avatar" data-home-avatar></div>
+                            <div class="dossier-titles">
+                                <span class="eyebrow">YOUR CORNER</span>
+                                <h3 data-fighter-name></h3>
+                                <p class="dossier-line" data-fighter-line></p>
+                            </div>
+                            <span class="dossier-number">CONTENDER<br /><b>NO. 01</b></span>
+                        </div>
+                        <div class="dossier-traits" data-fighter-traits></div>
+                        <div class="move-strip"><span class="eyebrow">SIGNED MOVES</span><div data-fighter-moves></div></div>
+                    </article>
+
+                    <article class="card-dossier card-away" aria-label="Challenger card">
+                        <div class="dossier-head">
+                            <div class="dossier-avatar" data-away-avatar></div>
+                            <div class="dossier-titles">
+                                <span class="eyebrow">THE CHALLENGER</span>
+                                <h3 data-challenger-name>Pigeon Pete</h3>
+                                <p class="dossier-line" data-challenger-line></p>
+                            </div>
+                            <span class="dossier-number">HOUSE<br /><b>CHAMP</b></span>
+                        </div>
+                        <div class="dossier-traits" data-challenger-traits></div>
+                        <div class="move-strip"><span class="eyebrow">SIGNED MOVES</span><div data-challenger-moves></div></div>
+                    </article>
+                </div>
+
                 <div class="tactic-picker">
                     <div><p class="eyebrow">ONE CORNER CALL</p><p>Pick your plan for round four.</p></div>
                     <div class="tactic-options" role="group" aria-label="Choose a corner call">
@@ -154,7 +185,14 @@
             </section>
 
             <section class="bout-result" data-bout-result hidden aria-labelledby="result-title">
-                <div class="result-head"><p class="eyebrow">THE OFFICIALS HAVE AGREED</p><h2 id="result-title" data-result-title></h2><button class="text-button" type="button" data-action="share">SHARE THIS TAPE <span aria-hidden="true">↗</span></button></div>
+                <div class="result-head">
+                    <div>
+                        <p class="eyebrow">THE OFFICIALS HAVE AGREED</p>
+                        <h2 id="result-title" data-result-title></h2>
+                    </div>
+                    <button class="text-button" type="button" data-action="share">SHARE THIS TAPE <span aria-hidden="true">↗</span></button>
+                </div>
+                <div class="result-stamp-wrap" data-result-stamp-wrap hidden><div class="result-stamp" data-result-stamp></div></div>
                 <ol class="round-log" data-round-log aria-live="polite" aria-relevant="additions"></ol>
                 <button class="rematch-button" type="button" data-action="rematch">SAME LINE. NEW NIGHT.</button>
             </section>
@@ -174,7 +212,7 @@
                 <li><span aria-hidden="true">01</span><p><b>Ask around.</b> Pete can’t resist crisps. Put a snack in your description to use that counter.</p></li>
                 <li><span aria-hidden="true">02</span><p><b>Write one line.</b> Invent anyone you like. The AI can add vivid details and surprising moves while keeping the spirit of your idea.</p></li>
                 <li><span aria-hidden="true">03</span><p><b>Pick a corner call.</b> In round four, Push hits harder but leaves you open; Brace cuts incoming damage; Gamble can pay off or fizzle.</p></li>
-                <li><span aria-hidden="true">04</span><p><b>Watch the tape.</b> The fight runs for up to six rounds or a knockout, with each move logged as it happens. Rematch or share it.</p></li>
+                <li><span aria-hidden="true">04</span><p><b>Watch the tape.</b> The fight runs for up to seven rounds or a knockout, with each move logged as it happens. Rematch or share it.</p></li>
             </ol>
             <p class="how-footnote">Practice cards use local rules. Connect Pollinations to forge with AI; each forge uses one text call.</p>
             <button class="how-close" type="button" data-action="close-how">Back to the corner <span aria-hidden="true">↗</span></button>

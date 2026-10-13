@@ -1,7 +1,14 @@
-import { TEXT_MODEL } from "./config.js";
+import { TEXT_MODEL, IMAGE_MODEL } from "./config.js";
 
-const normaliseText = (value, limit = 48) => typeof value === "string" ? value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit) : "";
-const readableText = (value, limit = 48) => {
+const normaliseText = (value, limit = 180) => {
+    if (typeof value !== "string") return "";
+    const clean = value.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
+    if (clean.length <= limit) return clean;
+    const sliced = clean.slice(0, limit);
+    const lastSpace = sliced.lastIndexOf(" ");
+    return lastSpace > limit * 0.65 ? sliced.slice(0, lastSpace).trim() : sliced.trim();
+};
+const readableText = (value, limit = 180) => {
     const text = normaliseText(value, limit);
     return text && text === text.toLocaleUpperCase("en-GB")
         ? text.toLocaleLowerCase("en-GB").replace(/(^|\s)\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-GB"))
@@ -29,22 +36,22 @@ function parseFighter(content, line) {
     const fighter = JSON.parse(json);
     if (!fighter || typeof fighter !== "object" || Array.isArray(fighter)) throw new Error("The forge returned an invalid fighter.");
     if (typeof fighter.dq !== "boolean") throw new Error("The forge returned an invalid fighter.");
-    if (fighter.dq === true) return { dq: true, reason: normaliseText(fighter.dqReason, 100) };
+    if (fighter.dq === true) return { dq: true, reason: normaliseText(fighter.dqReason, 120) };
     if (!fighter.stats || ![fighter.stats.power, fighter.stats.speed, fighter.stats.guard].every((value) => Number.isFinite(Number(value)))) {
         throw new Error("The forge returned an incomplete stat line.");
     }
     const moves = Array.isArray(fighter.moves) ? fighter.moves.slice(0, 3).map((move) => ({
-        name: readableText(move?.name, 28),
+        name: readableText(move?.name, 36),
         kind: ["strike", "trick", "feint", "brace"].includes(move?.kind) ? move.kind : "strike",
     })) : [];
     if (moves.length !== 3 || moves.some((move) => !move.name)) throw new Error("The forge left a few moves off the card.");
     return {
-        name: readableText(fighter.name, 32) || "The Unknown",
+        name: readableText(fighter.name, 36) || "The Unknown",
         line,
-        look: readableText(fighter.look, 120),
-        strength: readableText(fighter.strength) || (fighter.hasExploit || fighter.hasCrisps ? "Spotted the flaw" : "A surprise or two"),
-        weakness: readableText(fighter.weakness) || "A short attention span",
-        quirk: readableText(fighter.quirk) || "Hears the crowd",
+        look: readableText(fighter.look, 240),
+        strength: readableText(fighter.strength, 180) || (fighter.hasExploit || fighter.hasCrisps ? "Spotted the flaw" : "A surprise or two"),
+        weakness: readableText(fighter.weakness, 180) || "A short attention span",
+        quirk: readableText(fighter.quirk, 180) || "Hears the crowd",
         stats: balanceStats(fighter.stats),
         specificity: Math.max(0, Math.min(3, Math.round(Number(fighter.specificity) || 0))),
         hasCrisps: fighter.hasCrisps === true || fighter.hasExploit === true,
@@ -68,7 +75,7 @@ export async function forgeFighter(line, token, rumour = null) {
             body: JSON.stringify({
                 model: TEXT_MODEL,
                 temperature: 0.8,
-                max_tokens: 420,
+                max_tokens: 550,
                 messages: [
                     {
                         role: "system",
@@ -105,5 +112,37 @@ export async function forgeFighter(line, token, rumour = null) {
         return parsed;
     } catch {
         throw new Error("The artist couldn’t finish the card. Try the line again.");
+    }
+}
+
+function hashSeed(str = "") {
+    let result = 2166136261;
+    for (const char of str) result = Math.imul(result ^ char.codePointAt(0), 16777619);
+    return Math.abs(result >>> 0) % 999999;
+}
+
+export function getFighterAvatarUrl(fighter, isChallenger = false, token = null) {
+    const seed = hashSeed((fighter.name || "") + (fighter.look || "") + (fighter.line || ""));
+    const subject = isChallenger
+        ? "a scruffy city pigeon fighter in green track shorts with taped wings, smug menacing grin"
+        : (fighter.look || fighter.name || "contender").slice(0, 140);
+    const prompt = `Vintage underground boxing trading card portrait of ${subject}, bold graphic ink linework, retro pulp comic style, gritty basement arena lighting, character bust portrait, textured paper background --no text`;
+    const encoded = encodeURIComponent(prompt);
+    const authQuery = token ? `&key=${encodeURIComponent(token)}` : "";
+    return `https://gen.pollinations.ai/image/${encoded}?model=${encodeURIComponent(IMAGE_MODEL)}&width=256&height=256&nologo=true&seed=${seed}${authQuery}`;
+}
+
+export async function loadFighterAvatar(fighter, isChallenger = false, token = null) {
+    if (!token) return null;
+    const url = getFighterAvatarUrl(fighter, isChallenger, token);
+    try {
+        const response = await fetch(url, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!response.ok) return null;
+        const blob = await response.blob();
+        return URL.createObjectURL(blob);
+    } catch {
+        return null;
     }
 }

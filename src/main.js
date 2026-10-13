@@ -715,7 +715,7 @@ function openSharedFight() {
     const params = new URLSearchParams(window.location.hash.slice(1));
     try {
         const replay = JSON.parse(params.get("fight"));
-        if (replay.v !== 1 || typeof replay.line !== "string" || !replay.line.trim() || replay.line.length > 120) return;
+        if (replay.v !== 1 || typeof replay.line !== "string" || !replay.line.trim() || replay.line.length > 80) return;
         currentLine = replay.line.trim().replace(/\s+/g, " ");
         tactic = ["push", "brace", "gamble"].includes(replay.tactic) ? replay.tactic : "push";
         rematch = Number.isInteger(replay.rematch) && replay.rematch >= 0 && replay.rematch < 100 ? replay.rematch : 0;

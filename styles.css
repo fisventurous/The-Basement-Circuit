@@ -120,6 +120,30 @@ h1 em { color: var(--red); font: italic 700 1em/1 Georgia, serif; letter-spacing
 .scout-cycle { display: inline-grid; place-items: center; width: 26px; height: 26px; padding: 0; background: #d7c5dc; color: #2e1b36; border: 1px solid #a891af; border-radius: 50%; font-size: 13px; font-weight: 700; cursor: pointer; transition: transform .15s ease, background .15s ease; }
 .scout-cycle:hover { background: #cbb4d2; transform: rotate(45deg); }
 .scout-cycle:active { transform: rotate(180deg); }
+.scout-bribe {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: #2b1c33;
+    color: var(--acid);
+    border: 1px solid #71557f;
+    border-radius: 2px;
+    font: 800 10px/1.2 Arial, sans-serif;
+    letter-spacing: .06em;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+.scout-bribe:hover {
+    background: var(--ink);
+    border-color: var(--acid);
+    transform: translateY(-1px);
+}
+.scout-bribe:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+    transform: none;
+}
 .scout-question { max-width: 320px; margin: 22px 0 18px; color: #201625; font: 700 22px/1.35 Georgia, serif; }
 .scout-button { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 210px; min-height: 48px; padding: 10px 13px; background: var(--ink); color: var(--paper); border: 0; cursor: pointer; font-size: 12px; font-weight: 700; letter-spacing: .05em; }
 .scout-button b { color: var(--acid); font-size: 15px; }

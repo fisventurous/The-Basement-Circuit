@@ -1,6 +1,6 @@
 import { makeFighter, makeChallenger, restoreFighter, simulateFight, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js";
 import { connectPollinations, disconnectPollinations, getAccessToken, takeDraft } from "./auth.js";
-import { forgeFighter, getFighterAvatarUrl, loadFighterAvatar } from "./pollinations.js";
+import { forgeFighter, getFighterAvatarUrl, loadFighterAvatar, generateCustomRumour } from "./pollinations.js";
 import { isSoundEnabled, toggleSound, playBell, playHit, playExploit, playMiss, playWin, playLoss } from "./audio.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -11,6 +11,7 @@ const scoutQuestion = $("[data-scout-question]");
 const scoutAnswer = $("[data-scout-answer]");
 const scoutButton = $('[data-action="scout"]');
 const cycleScoutButton = $('[data-action="cycle-scout"]');
+const bribeButton = $('[data-action="bribe-scout"]');
 const homeLookBadge = $("[data-home-look]");
 const awayLookBadge = $("[data-away-look]");
 const form = $("[data-fighter-form]");
@@ -66,12 +67,30 @@ let tactic = "push";
 let currentLine = "";
 let currentFighter = null;
 let rematch = 0;
-let currentRumourIndex = Math.floor(Math.random() * CORNER_RUMOURS.length);
+
+function pickInitialRumourIndex() {
+    let lastRumourId = null;
+    try {
+        lastRumourId = localStorage.getItem("basement-circuit:last-rumour");
+    } catch {}
+    const candidates = CORNER_RUMOURS.map((r, i) => ({ id: r.id, index: i }))
+        .filter((r) => r.id !== lastRumourId);
+    const pool = candidates.length > 0 ? candidates : CORNER_RUMOURS.map((r, i) => ({ id: r.id, index: i }));
+    const picked = pool[Math.floor(Math.random() * pool.length)];
+    try {
+        localStorage.setItem("basement-circuit:last-rumour", picked.id);
+    } catch {}
+    return picked.index;
+}
+
+let currentRumourIndex = pickInitialRumourIndex();
 
 function applyRumour(index) {
     currentRumourIndex = (index + CORNER_RUMOURS.length) % CORNER_RUMOURS.length;
     const rumour = CORNER_RUMOURS[currentRumourIndex];
-    if (scoutCount) scoutCount.textContent = rumour.scout;
+    if (scoutCount) {
+        scoutCount.textContent = rumour.scout || `SCOUT ${String(currentRumourIndex + 1).padStart(2, "0")} / ${String(CORNER_RUMOURS.length).padStart(2, "0")}`;
+    }
     if (scoutQuestion) scoutQuestion.textContent = rumour.question;
     scoutAnswer.hidden = true;
     scoutAnswer.textContent = "";
@@ -112,7 +131,42 @@ scoutButton.addEventListener("click", () => {
 });
 
 cycleScoutButton?.addEventListener("click", () => {
-    applyRumour(currentRumourIndex + 1);
+    const available = CORNER_RUMOURS.map((_, i) => i).filter((i) => i !== currentRumourIndex);
+    const nextIndex = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : 0;
+    applyRumour(nextIndex);
+    try {
+        localStorage.setItem("basement-circuit:last-rumour", CORNER_RUMOURS[nextIndex].id);
+    } catch {}
+});
+
+bribeButton?.addEventListener("click", async () => {
+    const token = getAccessToken();
+    if (!token) {
+        status.textContent = "Connect your Pollen pass to bribe the informant for live AI rumours.";
+        connectButton.focus();
+        return;
+    }
+    bribeButton.disabled = true;
+    bribeButton.textContent = "BRIBING…";
+    status.textContent = "Passing coins across the table for the latest cellar whisper…";
+    try {
+        const customRumour = await generateCustomRumour(token);
+        CORNER_RUMOURS.unshift(customRumour);
+        applyRumour(0);
+        scoutAnswer.textContent = customRumour.clue;
+        scoutAnswer.hidden = false;
+        scoutButton.disabled = true;
+        scoutButton.querySelector("span").textContent = "THE WORD IS OUT";
+        try {
+            localStorage.setItem("basement-circuit:last-rumour", customRumour.id);
+        } catch {}
+        status.textContent = "The informant took the bribe. Read the secret flaw above!";
+    } catch (err) {
+        status.textContent = err instanceof Error ? err.message : "The informant pocketed your coins and slipped away.";
+    } finally {
+        bribeButton.disabled = false;
+        bribeButton.textContent = "✦ BRIBE";
+    }
 });
 
 form.addEventListener("submit", async (event) => {
@@ -209,6 +263,7 @@ returnCornerButton?.addEventListener("click", () => {
         renderChallengerCard(CORNER_RUMOURS[currentRumourIndex]);
         if (homeHpVal && currentFighter) homeHpVal.textContent = `${currentFighter.maxHp} HP`;
         if (homeHpBar) homeHpBar.style.width = "100%";
+        $("[data-fight-status]").textContent = `Corner sponge down complete. HP restored to full (${currentFighter?.maxHp || 76} HP) for Bout 0${boutNumber}.`;
     } else {
         lineInput.readOnly = false;
         lineInput.value = "";
@@ -452,6 +507,10 @@ async function playFight() {
 
     roundLog.replaceChildren();
     $("[data-result-title]").textContent = "The bell goes";
+    if (homeHpVal && bout.fighter) homeHpVal.textContent = `${bout.fighter.maxHp} / ${bout.fighter.maxHp} HP`;
+    if (homeHpBar) homeHpBar.style.width = "100%";
+    if (awayHpVal && bout.challenger) awayHpVal.textContent = `${bout.challenger.maxHp} / ${bout.challenger.maxHp} HP`;
+    if (awayHpBar) awayHpBar.style.width = "100%";
     boutResult.hidden = false;
     boutResult.scrollIntoView({ behavior: "smooth", block: "start" });
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -536,11 +595,11 @@ async function playFight() {
         if (matchmakerSub) matchmakerSub.textContent = `BOUT 0${boutNumber} / 03 · SEVEN ROUNDS`;
         if (seriesStamp) seriesStamp.textContent = `BOUT 0${boutNumber} / 03`;
         if (returnCornerButton) {
-            returnCornerButton.textContent = `RETURN TO CORNER FOR BOUT 0${boutNumber} ↑`;
+            returnCornerButton.textContent = `RETURN TO CORNER (RESTORE HP FOR BOUT 0${boutNumber}) ↑`;
             returnCornerButton.dataset.action = "return-corner";
             returnCornerButton.disabled = false;
         }
-        $("[data-fight-status]").textContent = `Bout 0${boutNumber - 1} finished (${bout.won ? "Win" : "Loss"}). Pick your corner call for Bout 0${boutNumber}.`;
+        $("[data-fight-status]").textContent = `Bout 0${boutNumber - 1} finished (${bout.won ? "Win" : "Loss"}). Return to corner to restore full HP and pick tactics for Bout 0${boutNumber}.`;
     } else {
         startFightButton.disabled = true;
         startFightButton.innerHTML = 'Series Complete <span aria-hidden="true">✓</span>';

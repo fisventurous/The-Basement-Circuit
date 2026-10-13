@@ -125,15 +125,35 @@ export async function generateCustomRumour(token) {
     if (!token) throw new Error("A Pollen pass is required to bribe the cellar informant.");
     const controller = new AbortController();
     const timeout = window.setTimeout(() => controller.abort(), 25000);
+    const angles = [
+        "dockland alleyway whisper",
+        "pub taproom scuttlebutt",
+        "tenement rooftop gossip",
+        "canal lock keeper's shack tale",
+        "pawnshop cellar chatter",
+        "fish smokery yard rumour",
+        "railway archway word",
+        "greasy spoon back-booth secret",
+        "tramway switchbox gossip",
+        "underground boiler room tale",
+    ];
+    const angle = angles[Math.floor(Math.random() * angles.length)];
+    const nonce = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+    const randomSeed = Math.floor(Math.random() * 900000) + 100000;
     let response;
     try {
         response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
             method: "POST",
             signal: controller.signal,
-            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+                "Cache-Control": "no-cache",
+            },
             body: JSON.stringify({
                 model: TEXT_MODEL,
-                temperature: 0.85,
+                temperature: 0.95,
+                seed: randomSeed,
                 max_tokens: 450,
                 messages: [
                     {
@@ -154,7 +174,7 @@ Return ONLY valid JSON matching this schema:
                     },
                     {
                         role: "user",
-                        content: "Give me the latest secret word from the cellar informant about Pigeon Pete.",
+                        content: `Give me a brand new, completely unique secret rumour about Pigeon Pete from the ${angle} (informant ref #${nonce}). Do NOT repeat previous tropes like View-Master, chip shop crisps, or umbrellas.`,
                     },
                 ],
             }),

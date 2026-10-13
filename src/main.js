@@ -487,6 +487,7 @@ function makeVerdictEntry(bout) {
 
 function clearTape() {
     try {
+        localStorage.removeItem("basement-circuit:tape");
         localStorage.removeItem("last-line:tape");
     } catch {}
     renderTape([]);
@@ -494,7 +495,7 @@ function clearTape() {
 
 function readTape() {
     try {
-        const records = JSON.parse(localStorage.getItem("last-line:tape") ?? "[]");
+        const records = JSON.parse(localStorage.getItem("basement-circuit:tape") ?? localStorage.getItem("last-line:tape") ?? "[]");
         return Array.isArray(records)
             ? records.filter((record) => record && typeof record.line === "string" && typeof record.won === "boolean" && Number.isFinite(record.rounds)).slice(0, 10)
             : [];
@@ -506,7 +507,7 @@ function readTape() {
 function saveBout(record) {
     const records = [{ ...record, date: Date.now() }, ...readTape()].slice(0, 10);
     try {
-        localStorage.setItem("last-line:tape", JSON.stringify(records));
+        localStorage.setItem("basement-circuit:tape", JSON.stringify(records));
     } catch {
         status.textContent = "The bout’s in the book. Your browser couldn’t save the tape.";
     }

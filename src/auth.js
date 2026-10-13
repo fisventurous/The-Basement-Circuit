@@ -1,9 +1,9 @@
 import { APP_KEY, TEXT_MODEL, IMAGE_MODEL } from "./config.js";
 
-const TOKEN_KEY = "last-line:access-token";
-const DRAFT_KEY = "last-line:draft";
-const verifierKey = "last-line:pkce-verifier";
-const stateKey = "last-line:oauth-state";
+const TOKEN_KEY = "basement-circuit:access-token";
+const DRAFT_KEY = "basement-circuit:draft";
+const verifierKey = "basement-circuit:pkce-verifier";
+const stateKey = "basement-circuit:oauth-state";
 const redirectUri = new URL("../auth.html", import.meta.url).href;
 
 const randomToken = (length = 32) => {

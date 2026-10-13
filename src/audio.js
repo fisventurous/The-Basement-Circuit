@@ -1,6 +1,6 @@
-// Native Web Audio SFX for Last Line
+// Native Web Audio SFX for The Basement Circuit
 
-const STORAGE_KEY = "last-line:sound";
+const STORAGE_KEY = "basement-circuit:sound";
 let ctx = null;
 
 function getContext() {
@@ -16,7 +16,7 @@ function getContext() {
 
 function isSoundEnabled() {
     try {
-        return localStorage.getItem(STORAGE_KEY) !== "off";
+        return (localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem("last-line:sound")) !== "off";
     } catch {
         return true;
     }

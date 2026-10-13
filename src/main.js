@@ -109,6 +109,9 @@ form.addEventListener("submit", async (event) => {
     }
     if (!currentLine) return;
     rematch = 0;
+    roundLog.replaceChildren();
+    boutResult.hidden = true;
+    if (resultStampWrap) resultStampWrap.hidden = true;
     const token = getAccessToken();
     const submitButton = form.querySelector("[type='submit']");
     submitButton.disabled = true;
@@ -322,25 +325,26 @@ function makeRoundEntry(event) {
     const description = document.createElement("p");
     const damage = document.createElement("small");
 
-    round.textContent = `Round ${event.round}`;
+    round.textContent = event.round === 8 ? "Tie-Breaker" : `Round ${event.round}`;
+    if (event.round === 8) item.className = "round-sudden-death ";
     mark.className = "event-mark";
     mark.setAttribute("aria-hidden", "true");
     description.textContent = event.text;
 
     if (event.damage === 0) {
-        item.className = "round-miss hit-miss";
+        item.className += "round-miss hit-miss";
         mark.textContent = "↝";
         damage.textContent = "0 damage";
     } else if (event.counter) {
-        item.className = "round-hit hit-exploit";
+        item.className += "round-hit hit-exploit";
         mark.textContent = "★";
         damage.textContent = `-${event.damage} PETE (EXPLOIT)`;
     } else if (event.isHome) {
-        item.className = "round-hit hit-dealt";
+        item.className += "round-hit hit-dealt";
         mark.textContent = "✦";
         damage.textContent = `-${event.damage} PETE`;
     } else {
-        item.className = "round-hit hit-taken";
+        item.className += "round-hit hit-taken";
         mark.textContent = "▼";
         damage.textContent = `-${event.damage} YOU`;
     }
@@ -380,7 +384,7 @@ async function playFight() {
 
     homePips.forEach((pip) => pip.classList.add("pip-on"));
     awayPips.forEach((pip) => pip.classList.add("pip-on"));
-    if (healthStatus) healthStatus.textContent = "ROUND 1 OF 7 · BOUT UNDERWAY";
+    if (healthStatus) healthStatus.textContent = "ROUND 1 · BOUT UNDERWAY";
 
     roundLog.replaceChildren();
     $("[data-result-title]").textContent = "The bell goes";
@@ -399,7 +403,8 @@ async function playFight() {
         awayPips.forEach((pip, idx) => pip.classList.toggle("pip-on", idx < awayPipsActive));
 
         if (healthStatus) {
-            healthStatus.textContent = `ROUND ${event.round} OF 7 · ${event.homeHp}HP vs ${event.awayHp}HP`;
+            const roundLabel = event.round === 8 ? "TIE-BREAKER" : `ROUND ${event.round} OF 7`;
+            healthStatus.textContent = `${roundLabel} · ${event.homeHp}HP vs ${event.awayHp}HP`;
         }
 
         if (event.damage > 0) {
@@ -423,33 +428,75 @@ async function playFight() {
         await wait(reducedMotion ? 40 : next?.round !== event.round ? 580 : 380);
     }
 
+    const verdictEntry = makeVerdictEntry(bout);
+    roundLog.append(verdictEntry);
+    verdictEntry.scrollIntoView({ behavior: "smooth", block: "center" });
+
     if (bout.won) {
         playWin();
-        if (healthStatus) healthStatus.textContent = "UPSET VICTORY · THE BELT IS YOURS";
     } else {
         playLoss();
-        if (healthStatus) healthStatus.textContent = "BOUT OVER · THE HOUSE HOLDS";
+    }
+    if (healthStatus) {
+        healthStatus.textContent = `${bout.winner.toUpperCase()} WINS · ${bout.verdict} (${bout.rounds} ROUNDS)`;
     }
 
     if (resultStampWrap && resultStamp) {
         resultStampWrap.hidden = false;
         resultStamp.className = `result-stamp ${bout.won ? "is-win" : "is-loss"}`;
-        resultStamp.textContent = bout.won ? "UPSET WINNER" : "HOUSE PREVAILS";
+        resultStamp.textContent = bout.won ? `${bout.fighter.name.toUpperCase()} WINS` : `${bout.challenger.name.toUpperCase()} WINS`;
     }
 
-    $("[data-result-title]").textContent = bout.won ? "Upset of the night" : "The house holds";
+    $("[data-result-title]").textContent = bout.won
+        ? `${bout.fighter.name} wins by ${bout.verdict.toLowerCase()}`
+        : `${bout.challenger.name} wins by ${bout.verdict.toLowerCase()}`;
     startFightButton.disabled = false;
     rematchButton.disabled = false;
     $("[data-action='share']").disabled = false;
     fightInProgress = false;
-    saveBout({ line: currentLine, won: bout.won, rounds: bout.rounds });
+    saveBout({
+        line: currentLine,
+        won: bout.won,
+        winner: bout.winner,
+        verdict: bout.verdict,
+        rounds: bout.rounds,
+    });
+}
+
+function makeVerdictEntry(bout) {
+    const item = document.createElement("li");
+    item.className = `round-verdict ${bout.won ? "verdict-win" : "verdict-loss"}`;
+
+    const banner = document.createElement("div");
+    banner.className = "verdict-banner";
+
+    const badge = document.createElement("span");
+    badge.className = "verdict-badge";
+    badge.textContent = bout.won ? "OFFICIAL WINNER" : "HOUSE VICTORY";
+
+    const heading = document.createElement("h3");
+    heading.textContent = bout.won ? `${bout.fighter.name} WINS!` : `${bout.challenger.name} WINS!`;
+
+    const detail = document.createElement("p");
+    detail.textContent = `${bout.verdict} · ${bout.rounds} ROUNDS CONTESTED`;
+
+    banner.append(badge, heading, detail);
+    item.append(banner);
+    return item;
+}
+
+function clearTape() {
+    try {
+        localStorage.removeItem("last-line:tape");
+    } catch {}
+    renderTape([]);
 }
 
 function readTape() {
     try {
         const records = JSON.parse(localStorage.getItem("last-line:tape") ?? "[]");
         return Array.isArray(records)
-            ? records.filter((record) => record && typeof record.line === "string" && typeof record.won === "boolean" && Number.isFinite(record.rounds)).slice(0, 20)
+            ? records.filter((record) => record && typeof record.line === "string" && typeof record.won === "boolean" && Number.isFinite(record.rounds)).slice(0, 10)
             : [];
     } catch {
         return [];
@@ -457,7 +504,7 @@ function readTape() {
 }
 
 function saveBout(record) {
-    const records = [{ ...record, date: Date.now() }, ...readTape()].slice(0, 20);
+    const records = [{ ...record, date: Date.now() }, ...readTape()].slice(0, 10);
     try {
         localStorage.setItem("last-line:tape", JSON.stringify(records));
     } catch {
@@ -474,8 +521,10 @@ function renderTape(records = readTape()) {
         const line = document.createElement("span");
         const mark = document.createElement("b");
         result.textContent = record.won ? "WIN" : "LOSS";
+        result.className = record.won ? "tape-win" : "tape-loss";
         line.textContent = record.line;
-        mark.textContent = `${record.rounds} ROUNDS`;
+        const winnerLabel = record.winner ? (record.won ? "YOU WON" : `${record.winner.toUpperCase()} WON`) : (record.won ? "WIN" : "PETE WON");
+        mark.textContent = `${winnerLabel} · ${record.verdict ?? "DECISION"} (${record.rounds}R)`;
         item.append(result, line, mark);
         return item;
     }));
@@ -549,6 +598,7 @@ function showHowToPlay() {
 }
 
 $("[data-action='close-how']").addEventListener("click", () => howDialog.close());
+$("[data-action='clear-tape']")?.addEventListener("click", () => clearTape());
 
 applyRumour(currentRumourIndex);
 randomizeTaglines(false);

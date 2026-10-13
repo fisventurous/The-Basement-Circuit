@@ -7,8 +7,8 @@
         <meta name="description" content="Write a fighter. Scout the rival. Call the upset." />
         <title>Last Line — The Basement Circuit</title>
         <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='20' fill='%23e65032'/%3E%3Cpath d='M12 9h5v17h12v5H12z' fill='%23fff4dc'/%3E%3C/svg%3E" />
-        <link rel="stylesheet" href="styles.css" />
-        <script type="module" src="src/main.js"></script>
+        <link rel="stylesheet" href="styles.css?v=final2" />
+        <script type="module" src="src/main.js?v=final2"></script>
     </head>
     <body>
         <header class="masthead">
@@ -198,7 +198,10 @@
             </section>
 
             <section class="fight-tape" aria-label="Fight record">
-                <div class="tape-heading"><span class="eyebrow">THE TAPE</span><span>TONIGHT’S SCRAPBOOK</span></div>
+                <div class="tape-heading">
+                    <div><span class="eyebrow">THE TAPE</span><span>TONIGHT’S SCRAPBOOK</span></div>
+                    <button class="text-button" type="button" data-action="clear-tape">CLEAR TAPE</button>
+                </div>
                 <div class="tape-empty" data-tape-empty><span class="tape-stamp">0—0</span><p>No bouts on the books.<br />That can be fixed.</p></div>
                 <ol class="tape-log" data-tape-log aria-live="polite"></ol>
             </section>

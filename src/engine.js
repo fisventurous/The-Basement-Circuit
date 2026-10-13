@@ -441,29 +441,49 @@ function simulateFight(line, tactic = "push", rematch = 0, fighterProfile = null
         }
     }
 
+    // Sudden-death tie breaker if neither is KO'd and HP is close after round 7
+    const homePctInitial = home.hp / home.maxHp;
+    const awayPctInitial = away.hp / away.maxHp;
+    const isTiedOrClose = home.hp > 0 && away.hp > 0 && Math.abs(homePctInitial - awayPctInitial) <= 0.14;
+
+    if (isTiedOrClose) {
+        const tieRound = 8;
+        const first = home.stats.speed + random() * 4 >= away.stats.speed + random() * 4 ? home : away;
+        const second = first === home ? away : home;
+        for (const actor of [first, second]) {
+            const target = actor === home ? away : home;
+            const move = actor.moves[0] ?? { name: "Desperation strike", kind: "strike" };
+            const tieEvent = attack(actor, target, move, random, tieRound, activeRumour);
+            tieEvent.text = `[SUDDEN DEATH] ${tieEvent.text}`;
+            log.push(tieEvent);
+            if (home.hp <= 0 || away.hp <= 0) break;
+        }
+    }
+
     let winner;
     let verdict;
+    const hadTieBreaker = log.some((e) => e.round === 8);
     if (home.hp <= 0) {
         winner = away;
-        verdict = "KNOCKOUT";
+        verdict = hadTieBreaker ? "SUDDEN-DEATH KNOCKOUT" : "KNOCKOUT";
     } else if (away.hp <= 0) {
         winner = home;
-        verdict = "KNOCKOUT";
+        verdict = hadTieBreaker ? "SUDDEN-DEATH KNOCKOUT" : "KNOCKOUT";
     } else {
         const homePct = home.hp / home.maxHp;
         const awayPct = away.hp / away.maxHp;
-        if (Math.abs(homePct - awayPct) >= 0.05) {
+        if (Math.abs(homePct - awayPct) >= 0.04) {
             winner = homePct > awayPct ? home : away;
-            verdict = "UNANIMOUS DECISION";
+            verdict = hadTieBreaker ? "TIE-BREAKER DECISION" : "UNANIMOUS DECISION";
         } else {
             const homeDamage = log.filter((e) => e.isHome).reduce((sum, e) => sum + e.damage, 0);
             const awayDamage = log.filter((e) => !e.isHome).reduce((sum, e) => sum + e.damage, 0);
             if (homeDamage !== awayDamage) {
                 winner = homeDamage > awayDamage ? home : away;
-                verdict = "SPLIT DECISION";
+                verdict = hadTieBreaker ? "TIE-BREAKER DECISION" : "SPLIT DECISION";
             } else {
-                winner = home;
-                verdict = "UNDERGROUND VERDICT";
+                winner = homeDamage >= awayDamage ? home : away;
+                verdict = hadTieBreaker ? "TIE-BREAKER DECISION" : "UNDERGROUND VERDICT";
             }
         }
     }

@@ -19,7 +19,7 @@ Every fight night pits your custom contender against the house veteran, Pigeon P
 ## Powered by Pollinations
 
 - **Fighter Generation**: `openai/gpt-5.6-sol` extracts structured stats, combat moves, and flaw exploits from natural-language descriptions.
-- **Card Portraits**: `microsoft/mai-image-2.6-flash` (with `tongyi-mai/z-image-turbo` fallback) renders stylised retro comic portraits for each fighter.
+- **Card Portraits**: `black-forest-labs/flux.1.1-pro` (with `tongyi-mai/z-image-turbo` fallback) renders stylised retro comic portraits for each fighter.
 - **Pollen Auth**: Native OAuth PKCE flow allowing players to connect their own Pollinations pass directly in the browser.
 
 ## Running Locally

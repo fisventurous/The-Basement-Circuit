@@ -247,9 +247,9 @@ function hashSeed(str = "") {
 export function getFighterAvatarUrl(fighter, isChallenger = false, token = null, model = IMAGE_MODEL) {
     const seed = hashSeed((fighter.name || "") + (fighter.look || "") + (fighter.line || ""));
     const subject = isChallenger
-        ? "anthropomorphic pigeon mutant creature, feathered avian hybrid humanoid, grotesque pigeon bird head with sharp beak and yellow bird eyes, ruffled grey-green feathers, muscular bird-man torso, human-like bipedal stance, taped wings and clawed wing knuckles, green athletic shorts, menacing smug grin, no human face"
+        ? "anthropomorphic pigeon mutant boxer, feathered avian hybrid humanoid, grotesque pigeon bird head with sharp beak and yellow bird eyes, ruffled grey-green feathers, muscular bird-man upper torso, close-up fighting stance, taped wings and clawed knuckles, menacing smug grin, no human face"
         : (fighter.look || fighter.name || "contender").slice(0, 140);
-    const prompt = `Vintage underground boxing trading card portrait of ${subject}, bold graphic ink linework, retro pulp comic style, gritty basement arena lighting, character bust portrait, textured paper background --no text`;
+    const prompt = `Full-bleed graphic illustration portrait of ${subject}, bold ink linework, retro pulp comic style, gritty basement arena lighting, close-up character bust filling frame, edge-to-edge illustration, dark arena background --no text, no border, no frame, no card, no margin, no white border, no photo matte`;
     const encoded = encodeURIComponent(prompt);
     const authQuery = token ? `&key=${encodeURIComponent(token)}` : "";
     return `https://gen.pollinations.ai/image/${encoded}?model=${encodeURIComponent(model)}&width=512&height=512&seed=${seed}&nologo=true${authQuery}`;

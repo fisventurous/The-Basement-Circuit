@@ -127,6 +127,7 @@ lineInput.addEventListener("input", () => {
 });
 
 scoutButton.addEventListener("click", () => {
+    if (currentFighter) return;
     const rumour = CORNER_RUMOURS[currentRumourIndex];
     scoutAnswer.textContent = rumour.clue;
     scoutAnswer.hidden = false;
@@ -135,6 +136,7 @@ scoutButton.addEventListener("click", () => {
 });
 
 cycleScoutButton?.addEventListener("click", () => {
+    if (currentFighter) return;
     const available = CORNER_RUMOURS.map((_, i) => i).filter((i) => i !== currentRumourIndex);
     const nextIndex = available.length > 0 ? available[Math.floor(Math.random() * available.length)] : 0;
     applyRumour(nextIndex);
@@ -144,6 +146,7 @@ cycleScoutButton?.addEventListener("click", () => {
 });
 
 bribeButton?.addEventListener("click", async () => {
+    if (currentFighter) return;
     const token = getAccessToken();
     if (!token) {
         status.textContent = "Connect your Pollen pass to bribe the informant for live AI rumours.";
@@ -280,6 +283,14 @@ returnCornerButton?.addEventListener("click", () => {
             submitButton.disabled = false;
             submitButton.innerHTML = 'Make the intro <span aria-hidden="true">↗</span>';
         }
+        if (cycleScoutButton) {
+            cycleScoutButton.disabled = false;
+            cycleScoutButton.removeAttribute("title");
+        }
+        if (bribeButton) {
+            bribeButton.disabled = false;
+            bribeButton.removeAttribute("title");
+        }
         form.setAttribute("aria-busy", "false");
         renderAuthState();
         currentFighter = null;
@@ -289,6 +300,7 @@ returnCornerButton?.addEventListener("click", () => {
         rematch = 0;
         fightPanel.hidden = true;
         boutResult.hidden = true;
+        applyRumour(currentRumourIndex);
         if (stageHomeArt && defaultHomeSvg) {
             stageHomeArt.innerHTML = '<span class="fighter-mark" data-home-mark></span>' + defaultHomeSvg;
         }
@@ -377,16 +389,19 @@ async function renderAvatar(container, fighter, isChallenger = false) {
             const stageArt = isChallenger ? stageAwayArt : stageHomeArt;
             if (stageArt) {
                 const mark = stageArt.querySelector("[data-home-mark]");
+                const stageFrame = document.createElement("div");
+                stageFrame.className = "fighter-stage-frame";
+                stageFrame.title = "Click to inspect portrait";
                 const stageImg = document.createElement("img");
                 stageImg.src = objectUrl;
                 stageImg.alt = fighter.name || (isChallenger ? "Pigeon Pete" : "Contender");
                 stageImg.loading = "lazy";
                 stageImg.decoding = "async";
-                stageImg.title = "Click to inspect portrait";
+                stageFrame.appendChild(stageImg);
                 if (mark) {
-                    stageArt.replaceChildren(mark, stageImg);
+                    stageArt.replaceChildren(mark, stageFrame);
                 } else {
-                    stageArt.replaceChildren(stageImg);
+                    stageArt.replaceChildren(stageFrame);
                 }
             }
         }
@@ -428,6 +443,17 @@ function showDossier(line, fighter, fromPollinations = false) {
     form.querySelector("[type='submit']").disabled = true;
     form.querySelector("[type='submit']").textContent = "LINE SEALED";
     form.setAttribute("aria-busy", "false");
+    if (cycleScoutButton) {
+        cycleScoutButton.disabled = true;
+        cycleScoutButton.title = "Rumour locked for the active bout series";
+    }
+    if (bribeButton) {
+        bribeButton.disabled = true;
+        bribeButton.title = "Matchup sealed. Bribe available when drafting a new card";
+    }
+    if (scoutButton) {
+        scoutButton.disabled = true;
+    }
     $("[data-fighter-name]").textContent = fighter.name;
     $(".corner-home .corner-label b").textContent = fighter.name;
     if (homeHpVal) homeHpVal.textContent = `${fighter.maxHp} HP`;

@@ -191,6 +191,8 @@ h1 em { color: var(--red); font: italic 700 1em/1 Georgia, serif; letter-spacing
 .tape-log span { color: #3f3342; font: italic 500 15px/1.55 Georgia, serif; }
 .tape-log b { color: var(--red); font-size: 12px; font-weight: 700; }
 .footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px clamp(18px, 4vw, 56px); background: var(--ink); color: #ded2e4; font-size: 11px; font-weight: 600; letter-spacing: .055em; }
+.footer a:not(.pollinations-badge) { color: var(--acid); text-decoration: underline; text-underline-offset: 3px; transition: color .15s ease, opacity .15s ease; }
+.footer a:not(.pollinations-badge):hover { color: #fff; }
 .pollinations-badge { display: inline-flex; align-items: center; transition: transform .15s ease, opacity .15s ease; }
 .pollinations-badge:hover { transform: translateY(-1px); opacity: .95; }
 .pollinations-badge img { height: 26px; width: auto; display: block; }

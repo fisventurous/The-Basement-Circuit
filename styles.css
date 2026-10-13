@@ -170,20 +170,22 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
 .auth-back span { margin-left: 9px; color: var(--acid); font-size: 14px; }
 @media (max-width: 700px) {
     .masthead { min-height: 72px; padding-inline: 16px; }
-    .brand { font-size: 16px; }
-    .brand small { font-size: 9px; }
+    .masthead { gap: 12px; }
+    .brand { gap: 8px; font-size: 15px; }
+    .brand > span:last-child { white-space: nowrap; }
+    .brand small { font-size: 8px; letter-spacing: .12em; }
     .brand-mark { width: 36px; height: 36px; }
-    .masthead-right { gap: 12px; }
+    .masthead-right { gap: 8px; }
     .live-tag { display: none; }
-    .text-button { font-size: 10px; }
+    .text-button { font-size: 9px; }
     .auth-status { display: none; }
-    .connect-button { min-height: 42px; padding-inline: 10px; font-size: 10px; }
+    .connect-button { min-height: 42px; padding-inline: 8px; font-size: 9px; }
     main { padding-inline: 16px; }
     .intro { min-height: 0; padding: 32px 0 24px; align-items: flex-start; flex-direction: column; gap: 8px; }
     .intro-copy { width: 100%; }
     h1 { font-size: clamp(42px, 10vw, 54px); }
-    .round-stamp { width: 90px; height: 90px; flex-basis: 90px; align-self: flex-end; }
-    .round-stamp strong { font-size: 16px; }
+    .round-stamp { width: 96px; height: 96px; flex-basis: 96px; align-self: flex-end; }
+    .round-stamp strong { margin: 4px 0; font-size: 15px; }
     .round-stamp span, .round-stamp small { font-size: 8px; }
     .lede { max-width: 520px; font-size: 17px; }
     .fight-stage { min-height: 320px; grid-template-columns: minmax(0, 1fr) 50px minmax(0, 1fr); padding: 18px 8px 50px; }

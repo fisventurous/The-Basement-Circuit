@@ -2,7 +2,7 @@
 
 Write a fighter in one line. Scout the challenger. Call the upset.
 
-The game works locally without an account. Set the public App Key in `src/config.js` to enable the Pollinations forge, then register the deployed `auth.html` URL as its redirect.
+The game works locally without an account. Set the public App Key in `src/config.js` to enable the Pollinations card press, then register the deployed `auth.html` URL as its redirect.
 
 ## Run locally
 

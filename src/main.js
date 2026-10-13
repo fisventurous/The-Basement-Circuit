@@ -118,7 +118,7 @@ form.addEventListener("submit", async (event) => {
     submitButton.innerHTML = 'INKING CARD <span aria-hidden="true">✦</span>';
     form.setAttribute("aria-busy", "true");
     $(".home-art")?.classList.add("is-inking");
-    forgeHeading.textContent = token ? "The Pollinations forge is turning…" : "The house artist is sketching…";
+    forgeHeading.textContent = token ? "The Pollinations press is running…" : "The house artist is sketching…";
     let stepIndex = 0;
     forgeStep.textContent = forgeMessages[stepIndex];
     clearInterval(forgeTimer);
@@ -153,7 +153,7 @@ form.addEventListener("submit", async (event) => {
             disconnectPollinations();
             renderAuthState();
         }
-        status.textContent = error instanceof Error ? error.message : "The forge lost the thread. Try again.";
+        status.textContent = error instanceof Error ? error.message : "The press lost the thread. Try again.";
         submitButton.innerHTML = 'Make the intro <span aria-hidden="true">↗</span>';
         submitButton.disabled = false;
         form.setAttribute("aria-busy", "false");
@@ -310,7 +310,7 @@ function showDossier(line, fighter, fromPollinations = false) {
     }));
     renderAvatar(homeAvatar, fighter, false);
     renderChallengerCard(CORNER_RUMOURS[currentRumourIndex]);
-    $("[data-fight-status]").textContent = fromPollinations ? "Forged by Pollinations · one text call." : "Local rules preview · no Pollen used.";
+    $("[data-fight-status]").textContent = fromPollinations ? "Inked by Pollinations · one text call." : "Local rules preview · no Pollen used.";
     fightPanel.hidden = false;
     boutResult.hidden = true;
     if (resultStampWrap) resultStampWrap.hidden = true;
@@ -579,7 +579,7 @@ function renderAuthState() {
     connectButton.textContent = connected ? "DISCONNECT" : "CONNECT POLLEN";
     connectButton.setAttribute("aria-label", connected ? "Disconnect Pollinations on this device" : "Connect your Pollinations account");
     const submitButton = form.querySelector("[type='submit']");
-    if (!lineInput.readOnly) submitButton.textContent = connected ? "Forge with Pollinations" : "Make practice card";
+    if (!lineInput.readOnly) submitButton.textContent = connected ? "Ink with Pollinations" : "Make practice card";
 }
 
 function renderSoundState() {

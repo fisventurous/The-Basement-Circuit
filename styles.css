@@ -167,9 +167,10 @@ h1 em { color: var(--red); font: italic 700 1em/1 Georgia, serif; letter-spacing
 .tape-log strong.tape-loss { color: #8e2b1b; }
 .tape-log span { color: #3f3342; font: italic 500 15px/1.55 Georgia, serif; }
 .tape-log b { color: var(--red); font-size: 12px; font-weight: 700; }
-.round-sudden-death { border-left: 3px solid var(--red) !important; background: rgba(230, 80, 50, 0.06) !important; }
-.footer { display: flex; justify-content: space-between; gap: 12px; padding: 18px clamp(18px, 4vw, 56px); background: var(--ink); color: #ded2e4; font-size: 11px; font-weight: 600; letter-spacing: .055em; }
-.how-dialog { width: min(620px, calc(100vw - 32px)); max-height: min(88dvh, 780px); overflow-y: auto; padding: clamp(22px, 5vw, 38px); color: var(--ink); background: var(--paper); border: 1px solid #aa95b2; box-shadow: 7px 7px 0 #71557f; }
+.footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 18px clamp(18px, 4vw, 56px); background: var(--ink); color: #ded2e4; font-size: 11px; font-weight: 600; letter-spacing: .055em; }
+.pollinations-badge { display: inline-flex; align-items: center; transition: transform .15s ease, opacity .15s ease; }
+.pollinations-badge:hover { transform: translateY(-1px); opacity: .95; }
+.pollinations-badge img { height: 26px; width: auto; display: block; }
 .how-dialog::backdrop { background: #211827d9; backdrop-filter: blur(3px); }
 .how-dialog h2 { margin: 8px 0 10px; font: 700 clamp(30px, 7vw, 38px)/1.12 Georgia, serif; }
 .how-intro, .how-footnote { color: var(--muted); font: 16px/1.55 Georgia, serif; }

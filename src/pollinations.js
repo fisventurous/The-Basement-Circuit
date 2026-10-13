@@ -34,17 +34,17 @@ function balanceStats(stats = {}) {
 function parseFighter(content, line) {
     const json = content.replace(/^```(?:json)?\s*|\s*```$/gi, "").trim();
     const fighter = JSON.parse(json);
-    if (!fighter || typeof fighter !== "object" || Array.isArray(fighter)) throw new Error("The forge returned an invalid fighter.");
-    if (typeof fighter.dq !== "boolean") throw new Error("The forge returned an invalid fighter.");
+    if (!fighter || typeof fighter !== "object" || Array.isArray(fighter)) throw new Error("The press returned an invalid fighter.");
+    if (typeof fighter.dq !== "boolean") throw new Error("The press returned an invalid fighter.");
     if (fighter.dq === true) return { dq: true, reason: normaliseText(fighter.dqReason, 120) };
     if (!fighter.stats || ![fighter.stats.power, fighter.stats.speed, fighter.stats.guard].every((value) => Number.isFinite(Number(value)))) {
-        throw new Error("The forge returned an incomplete stat line.");
+        throw new Error("The press returned an incomplete stat line.");
     }
     const moves = Array.isArray(fighter.moves) ? fighter.moves.slice(0, 3).map((move) => ({
         name: readableText(move?.name, 36),
         kind: ["strike", "trick", "feint", "brace"].includes(move?.kind) ? move.kind : "strike",
     })) : [];
-    if (moves.length !== 3 || moves.some((move) => !move.name)) throw new Error("The forge left a few moves off the card.");
+    if (moves.length !== 3 || moves.some((move) => !move.name)) throw new Error("The press left a few moves off the card.");
     return {
         name: readableText(fighter.name, 36) || "The Unknown",
         line,
@@ -87,22 +87,22 @@ export async function forgeFighter(line, token, rumour = null) {
         });
     } catch (error) {
         throw new Error(error instanceof Error && error.name === "AbortError"
-            ? "The forge timed out. Check your Pollen usage before trying the line again."
-            : "Couldn’t reach the Pollinations forge. Check your connection and try again.");
+            ? "The card press timed out. Check your Pollen usage before trying the line again."
+            : "Couldn’t reach the Pollinations press. Check your connection and try again.");
     } finally {
         window.clearTimeout(timeout);
     }
-    if (response.status === 401) throw new Error("Your Pollen pass expired. Reconnect before forging another fighter.");
+    if (response.status === 401) throw new Error("Your Pollen pass expired. Reconnect before inking another fighter.");
     if (response.status === 402) throw new Error("Your approved Pollen budget is used up. Check your Pollinations account to continue.");
-    if (!response.ok) throw new Error(`The forge is taking a breather (${response.status}). Try again in a moment.`);
+    if (!response.ok) throw new Error(`The card press is taking a breather (${response.status}). Try again in a moment.`);
     let data;
     try {
         data = await response.json();
     } catch {
-        throw new Error("The forge sent back an unreadable card.");
+        throw new Error("The press sent back an unreadable card.");
     }
     const content = data.choices?.[0]?.message?.content;
-    if (typeof content !== "string") throw new Error("The forge sent back an empty card.");
+    if (typeof content !== "string") throw new Error("The press sent back an empty card.");
     try {
         const parsed = parseFighter(content, line);
         if (rumour?.pattern?.test(line)) {

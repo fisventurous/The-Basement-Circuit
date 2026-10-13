@@ -1,2 +1,2 @@
-export const APP_KEY = "";
-export const TEXT_MODEL = "openai/gpt-5.4-nano";
+export const APP_KEY = "pk_tnqSzhBTtzUyIf5D";
+export const TEXT_MODEL = "openai/gpt-5.6-sol";

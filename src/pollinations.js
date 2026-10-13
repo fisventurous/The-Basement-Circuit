@@ -121,6 +121,103 @@ export async function forgeFighter(line, token, rumour = null) {
     }
 }
 
+export async function generateCustomRumour(token) {
+    if (!token) throw new Error("A Pollen pass is required to bribe the cellar informant.");
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => controller.abort(), 25000);
+    let response;
+    try {
+        response = await fetch("https://gen.pollinations.ai/v1/chat/completions", {
+            method: "POST",
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+            body: JSON.stringify({
+                model: TEXT_MODEL,
+                temperature: 0.85,
+                max_tokens: 450,
+                messages: [
+                    {
+                        role: "system",
+                        content: `You are the underground boxing informant in a vintage, humorous British fighting game called The Basement Circuit. The house champion is Pigeon Pete, a scruffy mutant street-pigeon birdman.
+Invent an unscripted, funny, hyper-specific cellar rumour revealing Pete's bizarre secret flaw or fear (e.g. fear of specific vintage objects, peculiar smells, eccentric noises, superstitious habits, or local alley oddities).
+Return ONLY valid JSON matching this schema:
+{
+  "question": "A punchy 1-sentence gossip question about where Pete was seen and what spooked him.",
+  "clue": "1-2 sentences of specific advice telling the contender what to bring or do to exploit it.",
+  "hint": "3 to 5 comma-separated keywords representing the counter (e.g. 'harmonica, blues, music, chords')",
+  "keywords": ["array", "of", "4", "to", "7", "lowercase", "keyword", "stems"],
+  "strength": "Short title for the contender's advantage (e.g. 'Blues Harp Wailing')",
+  "presetTitle": "Humorous moniker for Pete when facing this (e.g. 'Tone-Deaf Pete')",
+  "flaw": "1 short sentence describing Pete's flaw",
+  "counterText": "1 sentence describing what happens when the contender uses this counter in the ring. Must include '\${actor.name}' as the contender who uses it (e.g. '\${actor.name} plays a sad blues harp. Pete bursts into tears and drops his guard.')."
+}`,
+                    },
+                    {
+                        role: "user",
+                        content: "Give me the latest secret word from the cellar informant about Pigeon Pete.",
+                    },
+                ],
+            }),
+        });
+    } catch (error) {
+        throw new Error(error instanceof Error && error.name === "AbortError"
+            ? "The informant took too long to speak. Check your connection."
+            : "Couldn't reach the cellar informant. Check your connection.");
+    } finally {
+        window.clearTimeout(timeout);
+    }
+    if (response.status === 401) throw new Error("Your Pollen pass expired. Reconnect before bribing the informant.");
+    if (response.status === 402) throw new Error("Your approved Pollen budget is used up.");
+    if (!response.ok) throw new Error(`The informant took a breather (${response.status}). Try again.`);
+    let data;
+    try {
+        data = await response.json();
+    } catch {
+        throw new Error("The informant whispered something unreadable.");
+    }
+    const content = data.choices?.[0]?.message?.content;
+    if (typeof content !== "string") throw new Error("The informant gave no answer.");
+    const jsonStr = content.replace(/^```(?:json)?\s*|\s*```$/gi, "").trim();
+    let parsed;
+    try {
+        parsed = JSON.parse(jsonStr);
+    } catch {
+        throw new Error("The informant mumbled an incomplete rumour. Try again.");
+    }
+    const kwList = Array.isArray(parsed.keywords) && parsed.keywords.length > 0
+        ? parsed.keywords.map((k) => String(k).toLowerCase().trim()).filter(Boolean)
+        : ["trick"];
+    const regexPattern = new RegExp(`\\b(${kwList.map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})\\b`, "i");
+    return {
+        id: `ai-whisper-${Date.now()}`,
+        scout: "✦ INFORMANT TIP",
+        question: normaliseText(parsed.question, 140) || "Pete’s hiding a dark secret down by the coal cellar.",
+        clue: normaliseText(parsed.clue, 180) || "Catch him off-guard before he gets his footing.",
+        hint: normaliseText(parsed.hint, 100) || kwList.join(", "),
+        pattern: regexPattern,
+        strength: normaliseText(parsed.strength, 60) || "Informant's Leaked Word",
+        moves: [
+            { name: "Informant trap", kind: "trick" },
+            { name: "Surprise jab", kind: "strike" },
+            { name: "Duck the wing", kind: "brace" },
+        ],
+        counterText: (actor) => {
+            const tmpl = normaliseText(parsed.counterText, 200) || "${actor.name} springs the informant's secret trap. Pete is utterly bewildered.";
+            return tmpl.replace(/\$\{actor\.name\}|\$actor\.name|\[actor\]/g, actor.name);
+        },
+        preset: {
+            title: normaliseText(parsed.presetTitle, 40) || "Exposed Pete",
+            power: 5, speed: 6, guard: 4,
+            flaw: normaliseText(parsed.flaw, 140) || "A secret weakness leaked by the cellar informant.",
+            moves: [
+                { name: "Panic flurry", kind: "strike" },
+                { name: "Feather feint", kind: "feint" },
+                { name: "Tuck tight", kind: "brace" },
+            ],
+        },
+    };
+}
+
 function hashSeed(str = "") {
     let result = 2166136261;
     for (const char of str) result = Math.imul(result ^ char.codePointAt(0), 16777619);

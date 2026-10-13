@@ -52,7 +52,7 @@
                                 <path class="home-boot" d="M53 191h40v14H38zm79 0h43l13 14h-58z" />
                                 <path class="home-detail" d="M103 128h19m-26 12h30m-42 20 22 8" />
                             </svg>
-                            <span class="art-note">FIG. A — TBD</span>
+                            <span class="art-note">CORNER 01 · UNKNOWN</span>
                         </div>
                         <div class="corner-label"><span>YOUR CORNER</span><b>THE UNKNOWN</b></div>
                     </article>
@@ -110,6 +110,30 @@
                     <div class="form-bottom"><p>Be specific. Give them a problem. Make it personal.</p><button class="fight-button" type="submit">MAKE THE INTRO <span aria-hidden="true">↗</span></button></div>
                     <p class="form-status" data-status aria-live="polite">A good line can beat a bad matchup.</p>
                 </form>
+            </section>
+
+            <section class="fight-panel" data-fight-panel hidden aria-labelledby="dossier-title">
+                <div class="dossier-head">
+                    <div><p class="eyebrow">THE MATCHMAKER’S CARD</p><h2 id="dossier-title" data-fighter-name></h2></div>
+                    <span class="dossier-number">CONTENDER<br /><b>NO. 01</b></span>
+                </div>
+                <p class="dossier-line" data-fighter-line></p>
+                <div class="dossier-traits" data-fighter-traits></div>
+                <div class="tactic-picker">
+                    <div><p class="eyebrow">ONE CORNER CALL</p><p>Pick your plan for round four.</p></div>
+                    <div class="tactic-options" role="group" aria-label="Choose a corner call">
+                        <button type="button" data-tactic="push" aria-pressed="true"><b>PUSH</b><span>hit harder, risk more</span></button>
+                        <button type="button" data-tactic="brace" aria-pressed="false"><b>BRACE</b><span>take less damage</span></button>
+                        <button type="button" data-tactic="gamble" aria-pressed="false"><b>GAMBLE</b><span>one big chance</span></button>
+                    </div>
+                </div>
+                <div class="dossier-actions"><span class="form-status" data-fight-status>Local rules preview · no Pollen used.</span><button class="fight-button" type="button" data-action="start-fight">RING THE BELL <span aria-hidden="true">↗</span></button></div>
+            </section>
+
+            <section class="bout-result" data-bout-result hidden aria-labelledby="result-title">
+                <div class="result-head"><p class="eyebrow">THE OFFICIALS HAVE AGREED</p><h2 id="result-title" data-result-title></h2><button class="text-button" type="button" data-action="share">SHARE THIS TAPE <span aria-hidden="true">↗</span></button></div>
+                <ol class="round-log" data-round-log></ol>
+                <button class="rematch-button" type="button" data-action="rematch">SAME LINE. NEW NIGHT.</button>
             </section>
 
             <section class="fight-tape" aria-label="Fight record">

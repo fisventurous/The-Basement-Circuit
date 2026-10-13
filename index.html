@@ -20,7 +20,7 @@
                 <span class="live-tag"><i></i> BOUT NIGHT · NO. 01</span>
                 <span class="auth-status" data-auth-state>LOCAL CORNER</span>
                 <button class="connect-button" type="button" data-action="connect">CONNECT POLLEN</button>
-                <button class="text-button" type="button" data-action="how">HOW IT WORKS <span aria-hidden="true">↗</span></button>
+                <button class="text-button" type="button" data-action="how">HOW TO PLAY <span aria-hidden="true">↗</span></button>
             </div>
         </header>
 
@@ -43,6 +43,7 @@
                 <div class="fight-stage">
                     <article class="corner corner-home" aria-label="Your corner">
                         <div class="fighter-art home-art" aria-hidden="true">
+                            <span class="fighter-mark" data-home-mark></span>
                             <svg viewBox="0 0 220 230" role="presentation">
                                 <path class="home-shadow" d="M30 210h160l-22 10H48z" />
                                 <path class="home-body" d="M76 95c-22 11-32 41-26 78l-19 25h60l10-40 15 41h62l-27-42c9-40-1-63-24-74l-4-28H84z" />
@@ -108,8 +109,8 @@
 
                 <form class="fighter-form" data-fighter-form>
                     <label for="fighter-line"><span class="eyebrow">YOUR ONE-LINE CONTENDER</span><span class="character-count"><b data-count>0</b> / 120</span></label>
-                    <textarea id="fighter-line" name="fighter" maxlength="120" rows="2" placeholder="a retired lighthouse that only moves when nobody's looking" required></textarea>
-                    <div class="form-bottom"><p>Be specific. Give them a problem. Make it personal.</p><button class="fight-button" type="submit">Make the intro <span aria-hidden="true">↗</span></button></div>
+                    <textarea id="fighter-line" name="fighter" maxlength="120" rows="2" placeholder="a boxing tortoise with a sleeve of crisps" required></textarea>
+                    <div class="form-bottom"><p>Any contender can enter. Connect Pollinations for the AI to riff on your line.</p><button class="fight-button" type="submit">Make the intro <span aria-hidden="true">↗</span></button></div>
                     <p class="form-status" data-status aria-live="polite">A good line can beat a bad matchup.</p>
                 </form>
             </section>
@@ -135,7 +136,7 @@
 
             <section class="bout-result" data-bout-result hidden aria-labelledby="result-title">
                 <div class="result-head"><p class="eyebrow">THE OFFICIALS HAVE AGREED</p><h2 id="result-title" data-result-title></h2><button class="text-button" type="button" data-action="share">SHARE THIS TAPE <span aria-hidden="true">↗</span></button></div>
-                <ol class="round-log" data-round-log></ol>
+                <ol class="round-log" data-round-log aria-live="polite" aria-relevant="additions"></ol>
                 <button class="rematch-button" type="button" data-action="rematch">SAME LINE. NEW NIGHT.</button>
             </section>
 
@@ -145,6 +146,20 @@
                 <ol class="tape-log" data-tape-log aria-live="polite"></ol>
             </section>
         </main>
+
+        <dialog class="how-dialog" data-how-dialog aria-labelledby="how-title">
+            <p class="eyebrow">A WORD FROM THE PROMOTER</p>
+            <h2 id="how-title">How to play</h2>
+            <p class="how-intro">Any kind of contender can enter. Your line is a starting point, not a character template.</p>
+            <ol class="how-steps">
+                <li><span aria-hidden="true">01</span><p><b>Ask around.</b> Pete can’t resist crisps. Put a snack in your description to use that counter.</p></li>
+                <li><span aria-hidden="true">02</span><p><b>Write one line.</b> Invent anyone you like. The AI can add vivid details and surprising moves while keeping the spirit of your idea.</p></li>
+                <li><span aria-hidden="true">03</span><p><b>Pick a corner call.</b> In round four, Push hits harder but leaves you open; Brace cuts incoming damage; Gamble can pay off or fizzle.</p></li>
+                <li><span aria-hidden="true">04</span><p><b>Watch the tape.</b> The fight runs for up to six rounds or a knockout, with each move logged as it happens. Rematch or share it.</p></li>
+            </ol>
+            <p class="how-footnote">Practice cards use local rules. Connect Pollinations to forge with AI; each forge uses one text call.</p>
+            <button class="how-close" type="button" data-action="close-how">Back to the corner <span aria-hidden="true">↗</span></button>
+        </dialog>
 
         <footer class="footer"><span>BUILT IN THE BASEMENT. HELD TOGETHER WITH TAPE.</span><span>NO TRAINING MONTAGE REQUIRED.</span></footer>
     </body>

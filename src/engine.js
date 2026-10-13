@@ -27,9 +27,16 @@ function randomFrom(seed) {
 }
 
 function fighterName(line) {
-    const words = line.toLocaleUpperCase("en-GB").match(/[A-Z0-9']+/g) ?? [];
-    const name = words.filter((word) => !["A", "AN", "THE", "MY"].includes(word)).slice(0, 3).join(" ");
-    return name || "THE UNKNOWN";
+    const words = line.match(/[\p{L}\p{N}']+/gu) ?? [];
+    const filler = new Set(["a", "an", "the", "my", "who", "that", "with", "from", "before", "after", "and", "then", "of", "in", "on"]);
+    const name = words.filter((word) => !filler.has(word.toLocaleLowerCase("en-GB")))
+        .slice(0, 3)
+        .map((word) => {
+            const readable = word.toLocaleLowerCase("en-GB");
+            return readable[0].toLocaleUpperCase("en-GB") + readable.slice(1);
+        })
+        .join(" ");
+    return name || "The Unknown";
 }
 
 function fighterLean(line) {
@@ -50,11 +57,11 @@ function makeFighter(line) {
     const specificity = clamp(Math.floor(new Set(words.map((word) => word.toLocaleLowerCase("en-GB"))).size / 4), 0, 3);
     const hasCrisps = /\b(crisps?|chips?|crumbs?|bread|corn|snack|sleeve)\b/i.test(line);
     const weakness = /\b(only|unless|afraid|scared|hates?|cannot|can't)\b/i.test(line) ? "A very specific problem" : "A short attention span";
-    const strength = hasCrisps ? "CRISPS ON THE WIND" : ({ power: "HEAVY HANDS", speed: "TOO QUICK TO PIN", guard: "A WALKING WALL" })[lean];
+    const strength = hasCrisps ? "Crisps on the wind" : ({ power: "Heavy hands", speed: "Too quick to pin", guard: "A walking wall" })[lean];
     const quirk = /\b(polite|sorry|apolog|retired|haunted|tiny|very)\b/i.test(line) ? "A strange little habit" : "Hears the crowd";
     const moves = hasCrisps
-        ? [{ name: "CRISP DECOY", kind: "trick" }, { name: "LID SLAM", kind: "strike" }, { name: "PLAY DEAD", kind: "brace" }]
-        : [{ name: "BODY SHOT", kind: "strike" }, { name: "DUST-CLOUD FEINT", kind: "feint" }, { name: "TUCK AND ROLL", kind: "brace" }];
+        ? [{ name: "Crisp decoy", kind: "trick" }, { name: "Lid slam", kind: "strike" }, { name: "Play dead", kind: "brace" }]
+        : [{ name: "Body shot", kind: "strike" }, { name: "Dust-cloud feint", kind: "feint" }, { name: "Tuck and roll", kind: "brace" }];
     return { name: fighterName(line), line, stats, specificity, hasCrisps, strength, weakness, quirk, moves, look: "A hand-cut contender in taped gloves and a jacket that has seen things." };
 }
 
@@ -63,6 +70,12 @@ function restoreFighter(value, line) {
     const clean = (text, fallback, limit) => typeof text === "string"
         ? text.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim().slice(0, limit) || fallback
         : fallback;
+    const readable = (text, fallback, limit) => {
+        const value = clean(text, fallback, limit);
+        return value === value.toLocaleUpperCase("en-GB")
+            ? value.toLocaleLowerCase("en-GB").replace(/(^|\s)\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-GB"))
+            : value;
+    };
     const stats = Object.fromEntries(["power", "speed", "guard"].map((key) => [key, clamp(Number(value.stats?.[key]) || 1, 1, 8)]));
     while (stats.power + stats.speed + stats.guard > 15) {
         const largest = Object.keys(stats).sort((a, b) => stats[b] - stats[a])[0];
@@ -76,18 +89,18 @@ function restoreFighter(value, line) {
     }
     const defaults = makeFighter(line);
     const moves = Array.isArray(value.moves) ? value.moves.slice(0, 3).map((move, index) => ({
-        name: clean(move?.name, defaults.moves[index]?.name ?? "BODY SHOT", 28),
+        name: readable(move?.name, defaults.moves[index]?.name ?? "Body shot", 28),
         kind: ["strike", "trick", "feint", "brace"].includes(move?.kind) ? move.kind : "strike",
     })) : defaults.moves;
     while (moves.length < 3) moves.push(defaults.moves[moves.length]);
     return {
         ...defaults,
-        name: clean(value.name, defaults.name, 32),
+        name: readable(value.name, defaults.name, 32),
         line,
-        look: clean(value.look, defaults.look, 120),
-        strength: clean(value.strength, defaults.strength, 48),
-        weakness: clean(value.weakness, defaults.weakness, 48),
-        quirk: clean(value.quirk, defaults.quirk, 48),
+        look: readable(value.look, defaults.look, 120),
+        strength: readable(value.strength, defaults.strength, 48),
+        weakness: readable(value.weakness, defaults.weakness, 48),
+        quirk: readable(value.quirk, defaults.quirk, 48),
         stats,
         specificity: clamp(Number(value.specificity) || 0, 0, 3),
         hasCrisps: value.hasCrisps === true,
@@ -140,7 +153,7 @@ function simulateFight(line, tactic = "push", rematch = 0, fighterProfile = make
     const random = randomFrom(hash(`${line}|pigeon-pete|${rematch}`));
     const home = combatant(fighterProfile, true);
     home.tactic = tactic;
-    const away = combatant({ name: challenger.name, stats: { power: challenger.power, speed: challenger.speed, guard: challenger.guard }, specificity: 1, hasCrisps: false, moves: [{ name: "WING TAX", kind: "strike" }, { name: "DIVING ELBOW", kind: "trick" }, { name: "HOP BACK", kind: "brace" }] }, false);
+    const away = combatant({ name: challenger.name, stats: { power: challenger.power, speed: challenger.speed, guard: challenger.guard }, specificity: 1, hasCrisps: false, moves: [{ name: "Wing tax", kind: "strike" }, { name: "Diving elbow", kind: "trick" }, { name: "Hop back", kind: "brace" }] }, false);
     const log = [];
 
     for (let round = 1; round <= 6 && home.hp > 0 && away.hp > 0; round++) {

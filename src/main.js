@@ -16,6 +16,11 @@ const tapeLog = $("[data-tape-log]");
 const roundLog = $("[data-round-log]");
 const connectButton = $("[data-action='connect']");
 const authState = $("[data-auth-state]");
+const howDialog = $("[data-how-dialog]");
+const startFightButton = $("[data-action='start-fight']");
+const rematchButton = $("[data-action='rematch']");
+const scoutClue = "A sleeve of crisps will draw him off. The grudge is your call.";
+let fightInProgress = false;
 let tactic = "push";
 let currentLine = "";
 let currentFighter = null;
@@ -32,7 +37,7 @@ lineInput.addEventListener("input", () => {
 });
 
 scoutButton.addEventListener("click", () => {
-    scoutAnswer.textContent = "Anything with a sleeve of crisps and a grudge.";
+    scoutAnswer.textContent = scoutClue;
     scoutAnswer.hidden = false;
     scoutButton.disabled = true;
     scoutButton.querySelector("span").textContent = "THE WORD IS OUT";
@@ -88,7 +93,7 @@ $("[data-action='rematch']").addEventListener("click", () => {
     playFight();
 });
 $("[data-action='share']").addEventListener("click", shareFight);
-$("[data-action='how']").addEventListener("click", showHowItWorks);
+$("[data-action='how']").addEventListener("click", showHowToPlay);
 connectButton.addEventListener("click", async () => {
     if (getAccessToken()) {
         disconnectPollinations();
@@ -105,13 +110,30 @@ connectButton.addEventListener("click", async () => {
 
 function makeTrait(label, value) {
     const card = document.createElement("div");
+    const icon = document.createElement("span");
     const name = document.createElement("span");
     const trait = document.createElement("b");
     card.className = "trait-card";
+    icon.className = "trait-icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = ({ Strength: "✦", Weakness: "◌", Quirk: "✳", Power: "◆", Speed: "↗", Guard: "⬡", Look: "◉" })[label] ?? "·";
     name.textContent = label;
     trait.textContent = value;
-    card.append(name, trait);
+    card.append(icon, name, trait);
     return card;
+}
+
+function fighterStyle(line, look = "") {
+    const text = `${line} ${look}`.toLocaleLowerCase("en-GB");
+    const styles = [
+        ["shell", /\b(turtle|tortoise|shell|armadillo)\b/, "SHELL"],
+        ["wing", /\b(bird|pigeon|owl|hawk|wing|feather|flying)\b/, "WING"],
+        ["machine", /\b(robot|android|machine|clockwork|mechanical|automaton)\b/, "GEAR"],
+        ["spectre", /\b(ghost|haunted|spirit|phantom|spectre|specter|wraith)\b/, "WISP"],
+        ["deep", /\b(fish|shark|whale|octopus|submarine|ocean|sea)\b/, "DEEP"],
+    ];
+    const match = styles.find(([, pattern]) => pattern.test(text));
+    return match ? [match[0], match[2]] : ["corner", "CORNER"];
 }
 
 function showDossier(line, fighter, fromPollinations = false) {
@@ -121,24 +143,29 @@ function showDossier(line, fighter, fromPollinations = false) {
     form.querySelector("[type='submit']").textContent = "LINE SEALED";
     form.setAttribute("aria-busy", "false");
     $("[data-fighter-name]").textContent = fighter.name;
+    $(".corner-home .corner-label b").textContent = fighter.name;
     $("[data-fighter-line]").textContent = `“${line}”`;
-    $("[data-home-look]").textContent = (fighter.look || "HAND-CUT CONTENDER · BAD IDEAS").slice(0, 46);
-    $(".home-art").style.setProperty("--fighter-accent", fighter.hasCrisps ? "#d4e35f" : fighter.stats.power >= 7 ? "#efaa42" : fighter.stats.guard >= 7 ? "#788b59" : "#e65032");
+    const look = fighter.look || "A contender with bad ideas.";
+    $("[data-home-look]").textContent = look.length > 52 ? `${look.slice(0, 49).trimEnd()}…` : look;
+    const [style, mark] = fighterStyle(line, fighter.look);
+    const homeArt = $(".home-art");
+    $("[data-home-mark]").textContent = mark;
+    homeArt.style.setProperty("--fighter-accent", ({ shell: "#bda4d6", wing: "#d4e35f", machine: "#e6a13c", spectre: "#c7b1df", deep: "#9bc9c1", corner: "#e65032" })[style]);
     const traits = $("[data-fighter-traits]");
     traits.replaceChildren(
-        makeTrait("STRENGTH", fighter.strength),
-        makeTrait("WEAKNESS", fighter.weakness),
-        makeTrait("QUIRK", fighter.quirk),
-        makeTrait("POWER", String(fighter.stats.power)),
-        makeTrait("SPEED", String(fighter.stats.speed)),
-        makeTrait("GUARD", String(fighter.stats.guard)),
+        makeTrait("Strength", fighter.strength),
+        makeTrait("Weakness", fighter.weakness),
+        makeTrait("Quirk", fighter.quirk),
+        makeTrait("Power", String(fighter.stats.power)),
+        makeTrait("Speed", String(fighter.stats.speed)),
+        makeTrait("Guard", String(fighter.stats.guard)),
     );
-    if (fighter.look) traits.append(makeTrait("LOOK", fighter.look));
+    if (fighter.look) traits.append(makeTrait("Look", fighter.look));
     const moves = $("[data-fighter-moves]");
     moves.replaceChildren(...(fighter.moves ?? []).map((move) => {
         const chip = document.createElement("span");
         chip.className = "move-chip";
-        chip.textContent = move.name;
+        chip.textContent = move.name.toLocaleLowerCase("en-GB").replace(/\b\p{L}/gu, (letter) => letter.toLocaleUpperCase("en-GB"));
         return chip;
     }));
     $("[data-fight-status]").textContent = fromPollinations ? "Forged by Pollinations · one text call." : "Local rules preview · no Pollen used.";
@@ -151,22 +178,47 @@ function showDossier(line, fighter, fromPollinations = false) {
 function makeRoundEntry(event) {
     const item = document.createElement("li");
     const round = document.createElement("b");
+    const mark = document.createElement("span");
     const description = document.createElement("p");
     const damage = document.createElement("small");
-    round.textContent = `R${event.round}`;
+    item.className = event.damage ? "round-hit" : "round-miss";
+    round.textContent = `Round ${event.round}`;
+    mark.className = "event-mark";
+    mark.setAttribute("aria-hidden", "true");
+    mark.textContent = event.damage ? "✦" : "↝";
     description.textContent = event.text;
-    damage.textContent = event.damage ? `${event.damage} DAMAGE` : "NO DAMAGE";
-    item.append(round, description, damage);
+    damage.textContent = event.damage ? `${event.damage} damage` : "No damage";
+    item.append(round, mark, description, damage);
     return item;
 }
 
-function playFight() {
-    if (!currentLine) return;
+function wait(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+async function playFight() {
+    if (!currentLine || fightInProgress) return;
+    fightInProgress = true;
+    startFightButton.disabled = true;
+    rematchButton.disabled = true;
+    $("[data-action='share']").disabled = true;
     const bout = simulateFight(currentLine, tactic, rematch, currentFighter ?? makeFighter(currentLine));
-    roundLog.replaceChildren(...bout.log.map(makeRoundEntry));
-    $("[data-result-title]").textContent = bout.won ? "UPSET OF THE NIGHT" : "THE HOUSE HOLDS";
+    roundLog.replaceChildren();
+    $("[data-result-title]").textContent = "The bell goes";
     boutResult.hidden = false;
     boutResult.scrollIntoView({ behavior: "smooth", block: "start" });
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    for (let index = 0; index < bout.log.length; index += 1) {
+        const event = bout.log[index];
+        roundLog.append(makeRoundEntry(event));
+        const next = bout.log[index + 1];
+        await wait(reducedMotion ? 40 : next?.round !== event.round ? 520 : 340);
+    }
+    $("[data-result-title]").textContent = bout.won ? "Upset of the night" : "The house holds";
+    startFightButton.disabled = false;
+    rematchButton.disabled = false;
+    $("[data-action='share']").disabled = false;
+    fightInProgress = false;
     saveBout({ line: currentLine, won: bout.won, rounds: bout.rounds });
 }
 
@@ -230,7 +282,7 @@ function openSharedFight() {
         currentFighter = restoreFighter(replay.fighter, currentLine);
         lineInput.value = currentLine;
         count.textContent = String(currentLine.length);
-        scoutAnswer.textContent = "Anything with a sleeve of crisps and a grudge.";
+        scoutAnswer.textContent = scoutClue;
         scoutAnswer.hidden = false;
         scoutButton.disabled = true;
         scoutButton.querySelector("span").textContent = "THE WORD IS OUT";
@@ -253,33 +305,11 @@ function renderAuthState() {
     if (!lineInput.readOnly) submitButton.textContent = connected ? "Forge with Pollinations" : "Make practice card";
 }
 
-function showHowItWorks() {
-    const backdrop = document.createElement("div");
-    backdrop.className = "modal-backdrop";
-    const card = document.createElement("section");
-    const eyebrow = document.createElement("p");
-    const heading = document.createElement("h2");
-    const description = document.createElement("p");
-    const closeButton = document.createElement("button");
-    card.className = "how-card";
-    card.setAttribute("role", "dialog");
-    card.setAttribute("aria-modal", "true");
-    card.setAttribute("aria-labelledby", "how-title");
-    eyebrow.className = "eyebrow";
-    eyebrow.textContent = "A WORD FROM THE PROMOTER";
-    heading.id = "how-title";
-    heading.textContent = "Scout. Write. Swing.";
-    description.textContent = "Ask around for one clue about the challenger. Write one line and watch the bout. Local practice needs no account; connect Pollinations for the AI artist.";
-    closeButton.type = "button";
-    closeButton.textContent = "BACK TO THE CORNER";
-    card.append(eyebrow, heading, description, closeButton);
-    backdrop.append(card);
-    backdrop.addEventListener("click", (event) => {
-        if (event.target === backdrop || event.target === closeButton) backdrop.remove();
-    });
-    document.body.append(backdrop);
-    closeButton.focus();
+function showHowToPlay() {
+    howDialog.showModal();
 }
+
+$("[data-action='close-how']").addEventListener("click", () => howDialog.close());
 
 renderTape();
 renderAuthState();

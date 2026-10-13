@@ -55,8 +55,8 @@
                                 <path class="home-boot" d="M53 191h40v14H38zm79 0h43l13 14h-58z" />
                                 <path class="home-detail" d="M103 128h19m-26 12h30m-42 20 22 8" />
                             </svg>
-                            <span class="art-note" data-home-look>HAND-CUT CONTENDER · BAD IDEAS</span>
                         </div>
+                        <div class="fighter-tagline"><span class="tagline-badge" data-home-look>HAND-CUT CONTENDER · BAD IDEAS</span></div>
                         <div class="corner-label"><span>YOUR CORNER</span><b>THE UNKNOWN</b></div>
                     </article>
 
@@ -84,8 +84,8 @@
                                 <path class="pigeon-shorts" d="m70 153 51 10-9 27-48-9z" />
                                 <path class="pigeon-stripe" d="m78 162 36 8m-39 1 36 8" />
                             </svg>
-                            <span class="art-note">LOCAL MENACE · EST. TUESDAY</span>
                         </div>
+                        <div class="fighter-tagline"><span class="tagline-badge" data-away-look>LOCAL MENACE · EST. TUESDAY</span></div>
                         <div class="corner-label"><span>THE CHALLENGER</span><b>PIGEON PETE</b></div>
                     </article>
 
@@ -100,8 +100,14 @@
 
             <section class="ringside" aria-label="Prepare your fighter">
                 <aside class="scout-card">
-                    <div class="scout-top"><span class="eyebrow">CORNER WHISPER</span><span class="scout-count">SCOUT 01 / 01</span></div>
-                    <p class="scout-question">Pete’s been seen circling the chip shop. What’s he afraid of?</p>
+                    <div class="scout-top">
+                        <span class="eyebrow">CORNER WHISPER</span>
+                        <div class="scout-meta">
+                            <span class="scout-count" data-scout-count>SCOUT 01 / 06</span>
+                            <button class="scout-cycle" type="button" data-action="cycle-scout" title="Hear another corner rumour" aria-label="Hear another corner rumour">↺</button>
+                        </div>
+                    </div>
+                    <p class="scout-question" data-scout-question>Pete’s been seen circling the chip shop. What’s he afraid of?</p>
                     <button class="scout-button" type="button" data-action="scout"><span>ASK AROUND</span><b aria-hidden="true">↗</b></button>
                     <p class="scout-answer" data-scout-answer aria-live="polite" hidden></p>
                     <div class="paper-edge" aria-hidden="true"></div>
@@ -113,6 +119,16 @@
                     <div class="form-bottom"><p>Any contender can enter. Connect Pollinations for the AI to riff on your line.</p><button class="fight-button" type="submit">Make the intro <span aria-hidden="true">↗</span></button></div>
                     <p class="form-status" data-status aria-live="polite">A good line can beat a bad matchup.</p>
                 </form>
+            </section>
+
+            <section class="forge-panel" data-forge-panel hidden aria-live="polite">
+                <div class="forge-stamp" aria-hidden="true">INKING</div>
+                <div class="forge-content">
+                    <p class="eyebrow">THE BASEMENT PRESS IS TURNING</p>
+                    <h2 class="forge-title" data-forge-heading>Inking the match card…</h2>
+                    <p class="forge-status" data-forge-step>Weighing the contender and testing the gloves.</p>
+                    <div class="forge-track" aria-hidden="true"><div class="forge-meter"></div></div>
+                </div>
             </section>
 
             <section class="fight-panel" data-fight-panel hidden aria-labelledby="dossier-title">

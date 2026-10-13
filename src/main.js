@@ -1,14 +1,19 @@
-import { makeFighter, restoreFighter, simulateFight } from "./engine.js";
+import { makeFighter, restoreFighter, simulateFight, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js";
 import { connectPollinations, disconnectPollinations, getAccessToken, takeDraft } from "./auth.js";
 import { forgeFighter } from "./pollinations.js";
 
 const $ = (selector) => document.querySelector(selector);
 const lineInput = $("#fighter-line");
 const count = $("[data-count]");
+const scoutCount = $("[data-scout-count]");
+const scoutQuestion = $("[data-scout-question]");
 const scoutAnswer = $("[data-scout-answer]");
+const scoutButton = $('[data-action="scout"]');
+const cycleScoutButton = $('[data-action="cycle-scout"]');
+const homeLookBadge = $("[data-home-look]");
+const awayLookBadge = $("[data-away-look]");
 const form = $("[data-fighter-form]");
 const status = $("[data-status]");
-const scoutButton = $('[data-action="scout"]');
 const fightPanel = $("[data-fight-panel]");
 const boutResult = $("[data-bout-result]");
 const tapeEmpty = $("[data-tape-empty]");
@@ -19,12 +24,44 @@ const authState = $("[data-auth-state]");
 const howDialog = $("[data-how-dialog]");
 const startFightButton = $("[data-action='start-fight']");
 const rematchButton = $("[data-action='rematch']");
-const scoutClue = "A sleeve of crisps will draw him off. The grudge is your call.";
+const forgePanel = $("[data-forge-panel]");
+const forgeHeading = $("[data-forge-heading]");
+const forgeStep = $("[data-forge-step]");
+const forgeMessages = [
+    "Weighing the contender and testing the gloves…",
+    "Scouting the one-line description for quirks…",
+    "Signing three surprise moves with the promoter…",
+    "Setting the opening odds against Pigeon Pete…",
+];
+let forgeTimer = null;
 let fightInProgress = false;
 let tactic = "push";
 let currentLine = "";
 let currentFighter = null;
 let rematch = 0;
+let currentRumourIndex = Math.floor(Math.random() * CORNER_RUMOURS.length);
+
+function applyRumour(index) {
+    currentRumourIndex = (index + CORNER_RUMOURS.length) % CORNER_RUMOURS.length;
+    const rumour = CORNER_RUMOURS[currentRumourIndex];
+    if (scoutCount) scoutCount.textContent = rumour.scout;
+    if (scoutQuestion) scoutQuestion.textContent = rumour.question;
+    scoutAnswer.hidden = true;
+    scoutAnswer.textContent = "";
+    scoutButton.disabled = false;
+    scoutButton.querySelector("span").textContent = "ASK AROUND";
+}
+
+function randomizeTaglines(preserveHomeIfDossier = false) {
+    if (awayLookBadge) {
+        const awayTag = PETE_TAGLINES[Math.floor(Math.random() * PETE_TAGLINES.length)];
+        awayLookBadge.textContent = awayTag;
+    }
+    if (homeLookBadge && (!preserveHomeIfDossier || !currentFighter)) {
+        const homeTag = HOME_TAGLINES[Math.floor(Math.random() * HOME_TAGLINES.length)];
+        homeLookBadge.textContent = homeTag;
+    }
+}
 
 const draft = takeDraft();
 if (draft) {
@@ -37,10 +74,15 @@ lineInput.addEventListener("input", () => {
 });
 
 scoutButton.addEventListener("click", () => {
-    scoutAnswer.textContent = scoutClue;
+    const rumour = CORNER_RUMOURS[currentRumourIndex];
+    scoutAnswer.textContent = rumour.clue;
     scoutAnswer.hidden = false;
     scoutButton.disabled = true;
     scoutButton.querySelector("span").textContent = "THE WORD IS OUT";
+});
+
+cycleScoutButton?.addEventListener("click", () => {
+    applyRumour(currentRumourIndex + 1);
 });
 
 form.addEventListener("submit", async (event) => {
@@ -56,23 +98,46 @@ form.addEventListener("submit", async (event) => {
     const token = getAccessToken();
     const submitButton = form.querySelector("[type='submit']");
     submitButton.disabled = true;
+    submitButton.innerHTML = 'INKING CARD <span aria-hidden="true">✦</span>';
     form.setAttribute("aria-busy", "true");
+    $(".home-art")?.classList.add("is-inking");
+    forgeHeading.textContent = token ? "The Pollinations forge is turning…" : "The house artist is sketching…";
+    let stepIndex = 0;
+    forgeStep.textContent = forgeMessages[stepIndex];
+    clearInterval(forgeTimer);
+    forgeTimer = setInterval(() => {
+        stepIndex = (stepIndex + 1) % forgeMessages.length;
+        forgeStep.textContent = forgeMessages[stepIndex];
+    }, 1800);
+    forgePanel.hidden = false;
+    forgePanel.scrollIntoView({ behavior: "smooth", block: "nearest" });
     status.textContent = token ? "The artist’s got your line. Give them a moment." : "The house artist’s sketching a practice card.";
     try {
-        const fighter = token ? await forgeFighter(currentLine, token) : makeFighter(currentLine);
+        const activeRumour = CORNER_RUMOURS[currentRumourIndex];
+        const fighter = token
+            ? await forgeFighter(currentLine, token, activeRumour)
+            : makeFighter(currentLine, activeRumour);
+        clearInterval(forgeTimer);
+        forgePanel.hidden = true;
+        $(".home-art")?.classList.remove("is-inking");
         if (fighter.dq) {
             status.textContent = fighter.reason || "The referee’s called a foul. Try a different contender.";
+            submitButton.innerHTML = 'Make the intro <span aria-hidden="true">↗</span>';
             submitButton.disabled = false;
             form.setAttribute("aria-busy", "false");
             return;
         }
         showDossier(currentLine, fighter, Boolean(token));
     } catch (error) {
+        clearInterval(forgeTimer);
+        forgePanel.hidden = true;
+        $(".home-art")?.classList.remove("is-inking");
         if (error instanceof Error && error.message.includes("expired")) {
             disconnectPollinations();
             renderAuthState();
         }
         status.textContent = error instanceof Error ? error.message : "The forge lost the thread. Try again.";
+        submitButton.innerHTML = 'Make the intro <span aria-hidden="true">↗</span>';
         submitButton.disabled = false;
         form.setAttribute("aria-busy", "false");
     }
@@ -90,6 +155,7 @@ document.querySelectorAll("[data-tactic]").forEach((button) => {
 $("[data-action='start-fight']").addEventListener("click", () => playFight());
 $("[data-action='rematch']").addEventListener("click", () => {
     rematch += 1;
+    randomizeTaglines(true);
     playFight();
 });
 $("[data-action='share']").addEventListener("click", shareFight);
@@ -113,12 +179,19 @@ function makeTrait(label, value) {
     const icon = document.createElement("span");
     const name = document.createElement("span");
     const trait = document.createElement("b");
-    card.className = "trait-card";
+    card.className = `trait-card trait-${label.toLowerCase()}`;
     icon.className = "trait-icon";
     icon.setAttribute("aria-hidden", "true");
     icon.textContent = ({ Strength: "✦", Weakness: "◌", Quirk: "✳", Power: "◆", Speed: "↗", Guard: "⬡", Look: "◉" })[label] ?? "·";
     name.textContent = label;
-    trait.textContent = value;
+    if (["Power", "Speed", "Guard"].includes(label)) {
+        const num = Math.max(1, Math.min(8, Math.round(Number(value)) || 1));
+        const pips = Array.from({ length: 8 }, (_, i) => `<i class="${i < num ? "pip-on" : "pip-off"}"></i>`).join("");
+        trait.className = "trait-stat-row";
+        trait.innerHTML = `<span class="stat-val">${num}</span><span class="stat-pips" aria-hidden="true">${pips}</span>`;
+    } else {
+        trait.textContent = value;
+    }
     card.append(icon, name, trait);
     return card;
 }
@@ -202,7 +275,8 @@ async function playFight() {
     startFightButton.disabled = true;
     rematchButton.disabled = true;
     $("[data-action='share']").disabled = true;
-    const bout = simulateFight(currentLine, tactic, rematch, currentFighter ?? makeFighter(currentLine));
+    const activeRumour = CORNER_RUMOURS[currentRumourIndex];
+    const bout = simulateFight(currentLine, tactic, rematch, currentFighter ?? makeFighter(currentLine, activeRumour), activeRumour);
     roundLog.replaceChildren();
     $("[data-result-title]").textContent = "The bell goes";
     boutResult.hidden = false;
@@ -260,7 +334,8 @@ function renderTape(records = readTape()) {
 
 async function shareFight() {
     const url = new URL(window.location.href);
-    const replay = { v: 1, line: currentLine, tactic, rematch, fighter: currentFighter };
+    const activeRumour = CORNER_RUMOURS[currentRumourIndex];
+    const replay = { v: 1, line: currentLine, tactic, rematch, rumourId: activeRumour?.id, fighter: currentFighter };
     url.hash = new URLSearchParams({ fight: JSON.stringify(replay) }).toString();
     try {
         await navigator.clipboard.writeText(url.href);
@@ -279,10 +354,14 @@ function openSharedFight() {
         currentLine = replay.line.trim().replace(/\s+/g, " ");
         tactic = ["push", "brace", "gamble"].includes(replay.tactic) ? replay.tactic : "push";
         rematch = Number.isInteger(replay.rematch) && replay.rematch >= 0 && replay.rematch < 100 ? replay.rematch : 0;
-        currentFighter = restoreFighter(replay.fighter, currentLine);
+        const rumourIdx = CORNER_RUMOURS.findIndex((r) => r.id === replay.rumourId);
+        if (rumourIdx >= 0) currentRumourIndex = rumourIdx;
+        const activeRumour = CORNER_RUMOURS[currentRumourIndex];
+        applyRumour(currentRumourIndex);
+        currentFighter = restoreFighter(replay.fighter, currentLine, activeRumour);
         lineInput.value = currentLine;
         count.textContent = String(currentLine.length);
-        scoutAnswer.textContent = scoutClue;
+        scoutAnswer.textContent = activeRumour.clue;
         scoutAnswer.hidden = false;
         scoutButton.disabled = true;
         scoutButton.querySelector("span").textContent = "THE WORD IS OUT";
@@ -311,6 +390,8 @@ function showHowToPlay() {
 
 $("[data-action='close-how']").addEventListener("click", () => howDialog.close());
 
+applyRumour(currentRumourIndex);
+randomizeTaglines(false);
 renderTape();
 renderAuthState();
 openSharedFight();

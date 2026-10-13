@@ -1,4 +1,4 @@
-import { APP_KEY, TEXT_MODEL, IMAGE_MODEL } from "./config.js";
+import { APP_KEY, TEXT_MODEL, IMAGE_MODEL, BACKUP_IMAGE_MODEL } from "./config.js";
 
 const TOKEN_KEY = "basement-circuit:access-token";
 const DRAFT_KEY = "basement-circuit:draft";
@@ -53,7 +53,7 @@ export async function connectPollinations(draft = "") {
         state,
         code_challenge: await challengeFor(verifier),
         code_challenge_method: "S256",
-        models: `${TEXT_MODEL},${IMAGE_MODEL}`,
+        models: [TEXT_MODEL, IMAGE_MODEL, BACKUP_IMAGE_MODEL].filter(Boolean).join(","),
         budget: "5",
         expiry: "7",
     });

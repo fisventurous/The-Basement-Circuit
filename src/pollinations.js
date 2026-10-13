@@ -1,4 +1,4 @@
-import { TEXT_MODEL, IMAGE_MODEL } from "./config.js";
+import { TEXT_MODEL, IMAGE_MODEL, BACKUP_IMAGE_MODEL } from "./config.js";
 
 const normaliseText = (value, limit = 180) => {
     if (typeof value !== "string") return "";
@@ -127,26 +127,38 @@ function hashSeed(str = "") {
     return Math.abs(result >>> 0) % 999999;
 }
 
-export function getFighterAvatarUrl(fighter, isChallenger = false, token = null) {
+export function getFighterAvatarUrl(fighter, isChallenger = false, token = null, model = IMAGE_MODEL) {
     const subject = isChallenger
         ? "anthropomorphic pigeon mutant creature, feathered avian hybrid humanoid, grotesque pigeon bird head with sharp beak and yellow bird eyes, ruffled grey-green feathers, muscular bird-man torso, human-like bipedal stance, taped wings and clawed wing knuckles, green athletic shorts, menacing smug grin, no human face"
         : (fighter.look || fighter.name || "contender").slice(0, 140);
     const prompt = `Vintage underground boxing trading card portrait of ${subject}, bold graphic ink linework, retro pulp comic style, gritty basement arena lighting, character bust portrait, textured paper background --no text`;
     const encoded = encodeURIComponent(prompt);
     const authQuery = token ? `&key=${encodeURIComponent(token)}` : "";
-    return `https://gen.pollinations.ai/image/${encoded}?model=${encodeURIComponent(IMAGE_MODEL)}&width=768&height=768&nologo=true${authQuery}`;
+    return `https://gen.pollinations.ai/image/${encoded}?model=${encodeURIComponent(model)}&width=768&height=768&nologo=true${authQuery}`;
 }
 
 export async function loadFighterAvatar(fighter, isChallenger = false, token = null) {
     if (!token) return null;
-    const url = getFighterAvatarUrl(fighter, isChallenger, token);
+    const url = getFighterAvatarUrl(fighter, isChallenger, token, IMAGE_MODEL);
     try {
         const response = await fetch(url, {
             headers: { Authorization: `Bearer ${token}` },
         });
-        if (!response.ok) return null;
-        const blob = await response.blob();
-        return URL.createObjectURL(blob);
+        if (response.ok) {
+            const blob = await response.blob();
+            return URL.createObjectURL(blob);
+        }
+        if (BACKUP_IMAGE_MODEL && BACKUP_IMAGE_MODEL !== IMAGE_MODEL) {
+            const fallbackUrl = getFighterAvatarUrl(fighter, isChallenger, token, BACKUP_IMAGE_MODEL);
+            const fallbackResponse = await fetch(fallbackUrl, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (fallbackResponse.ok) {
+                const blob = await fallbackResponse.blob();
+                return URL.createObjectURL(blob);
+            }
+        }
+        return null;
     } catch {
         return null;
     }

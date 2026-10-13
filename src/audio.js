@@ -40,7 +40,7 @@ function playBell() {
         const gain = ac.createGain();
         osc.type = idx === 0 ? "sine" : "triangle";
         osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(idx === 0 ? 0.32 : 0.14, now);
+        gain.gain.setValueAtTime(idx === 0 ? 0.20 : 0.08, now);
         gain.gain.exponentialRampToValueAtTime(0.0001, now + (idx === 0 ? 1.3 : 0.7));
         osc.connect(gain);
         gain.connect(ac.destination);

@@ -70,6 +70,9 @@ function makeTrait(label, value) {
 
 function showDossier(line) {
     const fighter = makeFighter(line);
+    lineInput.readOnly = true;
+    form.querySelector("[type='submit']").disabled = true;
+    form.querySelector("[type='submit']").textContent = "LINE SEALED";
     $("[data-fighter-name]").textContent = fighter.name;
     $("[data-fighter-line]").textContent = `“${line}”`;
     const traits = $("[data-fighter-traits]");

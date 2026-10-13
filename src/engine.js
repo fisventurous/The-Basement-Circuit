@@ -56,7 +56,7 @@ function makeFighter(line) {
 }
 
 function combatant(fighter, isHome) {
-    return { ...fighter, isHome, maxHp: 56 + fighter.stats.guard * 4, hp: 56 + fighter.stats.guard * 4, guardUp: false, push: false, brace: false };
+    return { ...fighter, isHome, maxHp: 56 + fighter.stats.guard * 4, hp: 56 + fighter.stats.guard * 4, guardUp: false, cornerCalled: false };
 }
 
 function narrate(actor, target, move, damage, critical, counter) {
@@ -77,17 +77,20 @@ function attack(actor, target, move, random, round) {
     const hit = random() < hitChance;
     const critical = hit && random() < 0.04 + actor.specificity * 0.025;
     const counter = actor.isHome && actor.hasCrisps;
-    const tactic = actor.isHome && round >= 4 ? actor.tactic : "";
+    const tactic = actor.isHome && round === 4 && !actor.cornerCalled ? actor.tactic : "";
     const moveScale = move === "trick" ? 1.25 : move === "feint" ? 0.75 : 1;
-    const tacticScale = tactic === "push" ? 1.2 : tactic === "gamble" && random() < 0.35 ? 1.6 : 1;
+    let tacticScale = 1;
+    if (tactic) {
+        actor.cornerCalled = true;
+        if (tactic === "push") tacticScale = 1.2;
+        if (tactic === "gamble") tacticScale = random() < 0.35 ? 1.6 : 0.6;
+    }
     let damage = hit ? Math.round((6 + actor.stats.power + random() * 4) * moveScale * tacticScale * (counter ? 1.25 : 1) * (critical ? 1.5 : 1)) : 0;
-    if (target.brace) damage = Math.round(damage * 0.7);
     if (target.guardUp) damage = Math.round(damage * 0.55);
-    if (target.isHome && target.tactic === "push" && round >= 4) damage = Math.round(damage * 1.2);
-    if (target.isHome && target.tactic === "brace" && round >= 4) damage = Math.round(damage * 0.7);
+    if (target.isHome && target.tactic === "push" && round === 4) damage = Math.round(damage * 1.2);
+    if (target.isHome && target.tactic === "brace" && round === 4) damage = Math.round(damage * 0.7);
     target.hp = Math.max(0, target.hp - damage);
     actor.guardUp = false;
-    target.brace = false;
     return { actor: actor.name, move, damage, critical, text: narrate(actor, target, move, damage, critical, counter), round };
 }
 
@@ -99,8 +102,6 @@ function simulateFight(line, tactic = "push", rematch = 0) {
     const log = [];
 
     for (let round = 1; round <= 6 && home.hp > 0 && away.hp > 0; round++) {
-        home.brace = home.isHome && home.tactic === "brace" && round >= 4;
-        away.brace = false;
         const first = home.stats.speed + random() * 4 >= away.stats.speed + random() * 4 ? home : away;
         const second = first === home ? away : home;
         for (const actor of [first, second]) {

@@ -104,6 +104,7 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
 .form-bottom p { margin: 0; color: #777263; font: italic 12px/1.25 Georgia, serif; }
 .fight-button { min-height: 40px; flex: 0 0 auto; padding: 0 15px; color: var(--paper); background: var(--red); border: 0; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; font: 900 11px/1 Impact, sans-serif; letter-spacing: .08em; }
 .fight-button:hover, .scout-button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.fight-button:disabled { color: #6d675b; background: #d8d0bf; box-shadow: none; cursor: default; }
 .fight-button span { margin-left: 10px; color: var(--acid); font-size: 15px; }
 .form-status { min-height: 14px; margin: 9px 0 0; color: #777263; font: 11px/1.2 Georgia, serif; }
 .fight-tape { margin: 31px 0 48px; border-top: 2px solid var(--ink); }

@@ -250,7 +250,7 @@ function renderAuthState() {
     connectButton.textContent = connected ? "DISCONNECT" : "CONNECT POLLEN";
     connectButton.setAttribute("aria-label", connected ? "Disconnect Pollinations on this device" : "Connect your Pollinations account");
     const submitButton = form.querySelector("[type='submit']");
-    if (!lineInput.readOnly) submitButton.textContent = connected ? "FORGE WITH POLLINATIONS" : "MAKE PRACTICE CARD";
+    if (!lineInput.readOnly) submitButton.textContent = connected ? "Forge with Pollinations" : "Make practice card";
 }
 
 function showHowItWorks() {

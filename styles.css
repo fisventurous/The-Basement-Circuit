@@ -98,16 +98,16 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
 .scout-answer { margin: 14px 0 0; color: #713423; font: italic 700 16px/1.4 Georgia, serif; }
 .fighter-form { min-width: 0; padding: 24px; background: #faf5e9; border: 1px solid var(--line); box-shadow: 3px 4px 0 #d2c7b2; }
 .fighter-form label { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.character-count { color: #625d52; font: 700 12px Arial, sans-serif; }
+.character-count { color: #625d52; font: 700 12px Arial, sans-serif; white-space: nowrap; }
 .character-count b { color: var(--ink); }
 .fighter-form textarea { display: block; width: 100%; min-height: 88px; margin: 16px 0 12px; padding: 10px 2px; resize: vertical; color: var(--ink); background: transparent; border: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); border-radius: 0; font: 20px/1.45 Georgia, serif; }
 .fighter-form textarea::placeholder { color: #a29b89; font-style: italic; }
 .form-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .form-bottom p { margin: 0; color: #625d52; font: italic 14px/1.4 Georgia, serif; }
-.fight-button { min-height: 48px; flex: 0 0 auto; padding: 0 18px; color: var(--paper); background: var(--red); border: 0; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; font: 900 13px/1 Impact, sans-serif; letter-spacing: .08em; }
+.fight-button { min-height: 52px; flex: 0 0 auto; padding: 0 20px; color: var(--ink); background: var(--red); border: 0; box-shadow: 3px 3px 0 var(--ink); cursor: pointer; font: 700 15px/1.2 Arial, sans-serif; letter-spacing: .015em; }
 .fight-button:hover, .scout-button:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
-.fight-button:disabled { color: #6d675b; background: #d8d0bf; box-shadow: none; cursor: default; }
-.fight-button span { margin-left: 10px; color: var(--acid); font-size: 15px; }
+.fight-button:disabled { color: #514c42; background: #d8d0bf; box-shadow: none; cursor: default; }
+.fight-button span { margin-left: 10px; color: inherit; font-size: 16px; }
 .form-status { min-height: 18px; margin: 12px 0 0; color: #625d52; font: 13px/1.4 Georgia, serif; }
 .fight-tape { margin: 40px 0 52px; border-top: 2px solid var(--ink); }
 .tape-heading { display: flex; justify-content: space-between; padding: 14px 0 13px; border-bottom: 1px solid var(--line); }
@@ -236,6 +236,7 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
     .corner-label b { font-size: 11px; }
     .bout-strip, .bout-footer { padding-inline: 9px; font-size: 8px; }
     .fight-panel, .bout-result { padding-inline: 16px; }
+    .fighter-form textarea { min-height: 112px; }
 }
 @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }

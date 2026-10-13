@@ -1,6 +1,7 @@
 import { makeFighter, restoreFighter, simulateFight, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js";
 import { connectPollinations, disconnectPollinations, getAccessToken, takeDraft } from "./auth.js";
 import { forgeFighter } from "./pollinations.js";
+import { isSoundEnabled, toggleSound, playBell, playHit, playExploit, playMiss, playWin, playLoss } from "./audio.js";
 
 const $ = (selector) => document.querySelector(selector);
 const lineInput = $("#fighter-line");
@@ -20,6 +21,8 @@ const tapeEmpty = $("[data-tape-empty]");
 const tapeLog = $("[data-tape-log]");
 const roundLog = $("[data-round-log]");
 const connectButton = $("[data-action='connect']");
+const soundToggle = $("[data-action='toggle-sound']");
+const soundLabel = $("[data-sound-label]");
 const authState = $("[data-auth-state]");
 const howDialog = $("[data-how-dialog]");
 const startFightButton = $("[data-action='start-fight']");
@@ -218,9 +221,8 @@ function showDossier(line, fighter, fromPollinations = false) {
     $("[data-fighter-name]").textContent = fighter.name;
     $(".corner-home .corner-label b").textContent = fighter.name;
     $("[data-fighter-line]").textContent = `“${line}”`;
-    const look = fighter.look || "A contender with bad ideas.";
-    $("[data-home-look]").textContent = look.length > 52 ? `${look.slice(0, 49).trimEnd()}…` : look;
     const [style, mark] = fighterStyle(line, fighter.look);
+    $("[data-home-look]").textContent = `${mark} DIVISION · CONTENDER`;
     const homeArt = $(".home-art");
     $("[data-home-mark]").textContent = mark;
     homeArt.style.setProperty("--fighter-accent", ({ shell: "#bda4d6", wing: "#d4e35f", machine: "#e6a13c", spectre: "#c7b1df", deep: "#9bc9c1", corner: "#e65032" })[style]);
@@ -254,13 +256,30 @@ function makeRoundEntry(event) {
     const mark = document.createElement("span");
     const description = document.createElement("p");
     const damage = document.createElement("small");
-    item.className = event.damage ? "round-hit" : "round-miss";
+
     round.textContent = `Round ${event.round}`;
     mark.className = "event-mark";
     mark.setAttribute("aria-hidden", "true");
-    mark.textContent = event.damage ? "✦" : "↝";
     description.textContent = event.text;
-    damage.textContent = event.damage ? `${event.damage} damage` : "No damage";
+
+    if (event.damage === 0) {
+        item.className = "round-miss hit-miss";
+        mark.textContent = "↝";
+        damage.textContent = "0 damage";
+    } else if (event.counter) {
+        item.className = "round-hit hit-exploit";
+        mark.textContent = "★";
+        damage.textContent = `-${event.damage} PETE (EXPLOIT)`;
+    } else if (event.isHome) {
+        item.className = "round-hit hit-dealt";
+        mark.textContent = "✦";
+        damage.textContent = `-${event.damage} PETE`;
+    } else {
+        item.className = "round-hit hit-taken";
+        mark.textContent = "▼";
+        damage.textContent = `-${event.damage} YOU`;
+    }
+
     item.append(round, mark, description, damage);
     return item;
 }
@@ -277,6 +296,19 @@ async function playFight() {
     $("[data-action='share']").disabled = true;
     const activeRumour = CORNER_RUMOURS[currentRumourIndex];
     const bout = simulateFight(currentLine, tactic, rematch, currentFighter ?? makeFighter(currentLine, activeRumour), activeRumour);
+
+    playBell();
+
+    const homePips = Array.from(document.querySelectorAll(".health-row div:first-child i"));
+    const awayPips = Array.from(document.querySelectorAll(".health-row .health-away i"));
+    const healthStatus = $(".health-row span");
+    const cornerHome = $(".corner-home");
+    const cornerAway = $(".corner-away");
+
+    homePips.forEach((pip) => pip.classList.add("pip-on"));
+    awayPips.forEach((pip) => pip.classList.add("pip-on"));
+    if (healthStatus) healthStatus.textContent = "ROUND 1 OF 6 · BOUT UNDERWAY";
+
     roundLog.replaceChildren();
     $("[data-result-title]").textContent = "The bell goes";
     boutResult.hidden = false;
@@ -285,9 +317,45 @@ async function playFight() {
     for (let index = 0; index < bout.log.length; index += 1) {
         const event = bout.log[index];
         roundLog.append(makeRoundEntry(event));
+
+        const homePipsActive = Math.ceil((event.homeHp / event.homeMaxHp) * homePips.length);
+        const awayPipsActive = Math.ceil((event.awayHp / event.awayMaxHp) * awayPips.length);
+        homePips.forEach((pip, idx) => pip.classList.toggle("pip-on", idx < homePipsActive));
+        awayPips.forEach((pip, idx) => pip.classList.toggle("pip-on", idx < awayPipsActive));
+
+        if (healthStatus) {
+            healthStatus.textContent = `ROUND ${event.round} OF 6 · ${event.homeHp}HP vs ${event.awayHp}HP`;
+        }
+
+        if (event.damage > 0) {
+            const defender = event.isHome ? cornerAway : cornerHome;
+            if (defender) {
+                defender.classList.remove("is-hit");
+                void defender.offsetWidth;
+                defender.classList.add("is-hit");
+            }
+        }
+
+        if (event.damage === 0) {
+            playMiss();
+        } else if (event.counter) {
+            playExploit();
+        } else {
+            playHit(event.critical);
+        }
+
         const next = bout.log[index + 1];
-        await wait(reducedMotion ? 40 : next?.round !== event.round ? 520 : 340);
+        await wait(reducedMotion ? 40 : next?.round !== event.round ? 580 : 380);
     }
+
+    if (bout.won) {
+        playWin();
+        if (healthStatus) healthStatus.textContent = "UPSET VICTORY · THE BELT IS YOURS";
+    } else {
+        playLoss();
+        if (healthStatus) healthStatus.textContent = "BOUT OVER · THE HOUSE HOLDS";
+    }
+
     $("[data-result-title]").textContent = bout.won ? "Upset of the night" : "The house holds";
     startFightButton.disabled = false;
     rematchButton.disabled = false;
@@ -384,6 +452,17 @@ function renderAuthState() {
     if (!lineInput.readOnly) submitButton.textContent = connected ? "Forge with Pollinations" : "Make practice card";
 }
 
+function renderSoundState() {
+    const active = isSoundEnabled();
+    if (soundLabel) soundLabel.textContent = active ? "ON" : "OFF";
+    if (soundToggle) soundToggle.setAttribute("aria-label", `Sound effects ${active ? "on" : "off"}`);
+}
+
+soundToggle?.addEventListener("click", () => {
+    toggleSound();
+    renderSoundState();
+});
+
 function showHowToPlay() {
     howDialog.showModal();
 }
@@ -394,4 +473,5 @@ applyRumour(currentRumourIndex);
 randomizeTaglines(false);
 renderTape();
 renderAuthState();
+renderSoundState();
 openSharedFight();

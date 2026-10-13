@@ -227,7 +227,21 @@ function attack(actor, target, moveData, random, round, activeRumour) {
     const kind = moveData.kind;
     if (kind === "brace") {
         actor.guardUp = true;
-        return { actor: actor.name, move, damage: 0, critical: false, text: narrate(actor, target, move, kind, 0, false, false, activeRumour), round };
+        return {
+            actor: actor.name,
+            target: target.name,
+            isHome: actor.isHome,
+            move,
+            damage: 0,
+            critical: false,
+            counter: false,
+            text: narrate(actor, target, move, kind, 0, false, false, activeRumour),
+            round,
+            homeHp: actor.isHome ? actor.hp : target.hp,
+            awayHp: actor.isHome ? target.hp : actor.hp,
+            homeMaxHp: actor.isHome ? actor.maxHp : target.maxHp,
+            awayMaxHp: actor.isHome ? target.maxHp : actor.maxHp,
+        };
     }
     const hitChance = clamp(0.69 + (actor.stats.speed - target.stats.speed) * 0.025, 0.5, 0.9);
     const hit = random() < hitChance;
@@ -247,7 +261,21 @@ function attack(actor, target, moveData, random, round, activeRumour) {
     if (target.isHome && target.tactic === "brace" && round === 4) damage = Math.round(damage * 0.7);
     target.hp = Math.max(0, target.hp - damage);
     actor.guardUp = false;
-    return { actor: actor.name, move, damage, critical, text: narrate(actor, target, move, kind, damage, critical, counter, activeRumour), round };
+    return {
+        actor: actor.name,
+        target: target.name,
+        isHome: actor.isHome,
+        move,
+        damage,
+        critical,
+        counter: Boolean(counter && damage > 0),
+        text: narrate(actor, target, move, kind, damage, critical, counter, activeRumour),
+        round,
+        homeHp: actor.isHome ? actor.hp : target.hp,
+        awayHp: actor.isHome ? target.hp : actor.hp,
+        homeMaxHp: actor.isHome ? actor.maxHp : target.maxHp,
+        awayMaxHp: actor.isHome ? target.maxHp : actor.maxHp,
+    };
 }
 
 function simulateFight(line, tactic = "push", rematch = 0, fighterProfile = null, rumour = CORNER_RUMOURS[0]) {

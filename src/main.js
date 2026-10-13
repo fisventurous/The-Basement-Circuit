@@ -207,6 +207,8 @@ returnCornerButton?.addEventListener("click", () => {
         fightPanel.scrollIntoView({ behavior: "smooth", block: "start" });
         randomizeTaglines(true);
         renderChallengerCard(CORNER_RUMOURS[currentRumourIndex]);
+        if (homeHpVal && currentFighter) homeHpVal.textContent = `${currentFighter.maxHp} HP`;
+        if (homeHpBar) homeHpBar.style.width = "100%";
     } else {
         lineInput.readOnly = false;
         lineInput.value = "";
@@ -310,7 +312,6 @@ async function renderAvatar(container, fighter, isChallenger = false) {
 function renderChallengerCard(rumour) {
     const challenger = makeChallenger(rumour, rematch);
     if (challengerName) challengerName.textContent = challenger.name;
-    if (challengerLine) challengerLine.textContent = `“${challenger.line}”`;
     if (awayHpVal) awayHpVal.textContent = `${challenger.maxHp} HP`;
     if (awayHpBar) awayHpBar.style.width = "100%";
     if (challengerTraits) {
@@ -343,7 +344,6 @@ function showDossier(line, fighter, fromPollinations = false) {
     form.setAttribute("aria-busy", "false");
     $("[data-fighter-name]").textContent = fighter.name;
     $(".corner-home .corner-label b").textContent = fighter.name;
-    $("[data-fighter-line]").textContent = `“${line}”`;
     if (homeHpVal) homeHpVal.textContent = `${fighter.maxHp} HP`;
     if (homeHpBar) homeHpBar.style.width = "100%";
     if (seriesStamp) seriesStamp.textContent = `BOUT 01 / 03`;
@@ -466,6 +466,11 @@ async function playFight() {
         homePips.forEach((pip, idx) => pip.classList.toggle("pip-on", idx < homePipsActive));
         awayPips.forEach((pip, idx) => pip.classList.toggle("pip-on", idx < awayPipsActive));
 
+        if (homeHpVal) homeHpVal.textContent = `${Math.max(0, event.homeHp)} / ${event.homeMaxHp} HP`;
+        if (homeHpBar) homeHpBar.style.width = `${Math.max(0, Math.min(100, (event.homeHp / event.homeMaxHp) * 100))}%`;
+        if (awayHpVal) awayHpVal.textContent = `${Math.max(0, event.awayHp)} / ${event.awayMaxHp} HP`;
+        if (awayHpBar) awayHpBar.style.width = `${Math.max(0, Math.min(100, (event.awayHp / event.awayMaxHp) * 100))}%`;
+
         if (healthStatus) {
             const roundLabel = event.round === 8 ? "TIE-BREAKER" : `ROUND ${event.round} OF 7`;
             healthStatus.textContent = `BOUT ${boutNumber} · ${roundLabel} · ${event.homeHp}HP vs ${event.awayHp}HP`;
@@ -495,6 +500,12 @@ async function playFight() {
     const verdictEntry = makeVerdictEntry(bout);
     roundLog.append(verdictEntry);
     verdictEntry.scrollIntoView({ behavior: "smooth", block: "end" });
+
+    const finalEvent = bout.log.at(-1);
+    if (finalEvent) {
+        if (homeHpVal) homeHpVal.textContent = finalEvent.homeHp <= 0 ? `0 / ${finalEvent.homeMaxHp} HP (KO'D)` : `${finalEvent.homeHp} / ${finalEvent.homeMaxHp} HP`;
+        if (awayHpVal) awayHpVal.textContent = finalEvent.awayHp <= 0 ? `0 / ${finalEvent.awayMaxHp} HP (KO'D)` : `${finalEvent.awayHp} / ${finalEvent.awayMaxHp} HP`;
+    }
 
     if (bout.won) {
         seriesWins += 1;
@@ -719,7 +730,6 @@ function openZoom(isChallenger) {
     }
     if (zoomTag) zoomTag.textContent = isChallenger ? "HOUSE CHAMPION PORTRAIT" : "CONTENDER PORTRAIT";
     if (zoomName) zoomName.textContent = fighter?.name || (isChallenger ? "Pigeon Pete" : "The Unknown");
-    if (zoomLine) zoomLine.textContent = isChallenger ? `“${fighter?.line || ''}”` : `“${currentLine}”`;
     zoomDialog.showModal();
 }
 

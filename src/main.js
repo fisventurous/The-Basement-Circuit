@@ -1,3 +1,4 @@
+// Pollinations API Gateway: https://gen.pollinations.ai
 import { makeFighter, makeChallenger, restoreFighter, simulateFight, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js";
 import { connectPollinations, disconnectPollinations, getAccessToken, takeDraft } from "./auth.js";
 import { forgeFighter, getFighterAvatarUrl, loadFighterAvatar, generateCustomRumour } from "./pollinations.js";

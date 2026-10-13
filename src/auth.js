@@ -18,7 +18,7 @@ const challengeFor = async (verifier) => {
 
 export function getAccessToken() {
     try {
-        return sessionStorage.getItem(TOKEN_KEY);
+        return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
     } catch {
         return null;
     }
@@ -62,6 +62,7 @@ export async function connectPollinations(draft = "") {
 
 export function disconnectPollinations() {
     try {
+        localStorage.removeItem(TOKEN_KEY);
         sessionStorage.removeItem(TOKEN_KEY);
     } catch {
         return;
@@ -99,6 +100,7 @@ export async function finishAuthorization() {
         throw new Error("Pollinations couldn’t finish sign-in. Please try again.");
     }
 
+    localStorage.setItem(TOKEN_KEY, result.access_token);
     sessionStorage.setItem(TOKEN_KEY, result.access_token);
     sessionStorage.removeItem(verifierKey);
     sessionStorage.removeItem(stateKey);

@@ -139,7 +139,8 @@ h1 em { color: var(--red); font: italic 700 1em/1 Georgia, serif; letter-spacing
 .form-status { min-height: 18px; margin: 12px 0 0; color: #352538; font: 600 14px/1.5 Georgia, serif; }
 .fight-tape { margin: 40px 0 52px; border-top: 2px solid var(--ink); }
 .tape-heading { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 13px; border-bottom: 1px solid var(--line); }
-.tape-heading span:last-child { color: #3f3342; font-size: 11px; font-weight: 700; letter-spacing: .06em; }
+.tape-title-group { display: inline-flex; align-items: baseline; gap: 14px; }
+.tape-subtitle { color: #5c4465; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
 .tape-heading [data-action="clear-tape"] {
     color: #5c3c6d;
     background: transparent;
@@ -538,6 +539,7 @@ h1 em { color: var(--red); font: italic 700 1em/1 Georgia, serif; letter-spacing
 .result-head .text-button { font-size: 11px; }
 .round-log { margin: 0; padding: 0; list-style: none; }
 .round-log li {
+    scroll-margin-bottom: 80px;
     display: grid;
     grid-template-columns: 68px 24px minmax(0, 1fr) auto;
     gap: 12px;
@@ -662,6 +664,7 @@ h1 em { color: var(--red); font: italic 700 1em/1 Georgia, serif; letter-spacing
 }
 .round-verdict {
     display: block !important;
+    scroll-margin-bottom: 100px;
     padding: 0 !important;
     margin: 22px 0 10px !important;
     border: none !important;

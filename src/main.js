@@ -395,7 +395,7 @@ async function playFight() {
         const event = bout.log[index];
         const entry = makeRoundEntry(event);
         roundLog.append(entry);
-        entry.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        entry.scrollIntoView({ behavior: "smooth", block: "end" });
 
         const homePipsActive = Math.ceil((event.homeHp / event.homeMaxHp) * homePips.length);
         const awayPipsActive = Math.ceil((event.awayHp / event.awayMaxHp) * awayPips.length);
@@ -430,7 +430,7 @@ async function playFight() {
 
     const verdictEntry = makeVerdictEntry(bout);
     roundLog.append(verdictEntry);
-    verdictEntry.scrollIntoView({ behavior: "smooth", block: "center" });
+    verdictEntry.scrollIntoView({ behavior: "smooth", block: "end" });
 
     if (bout.won) {
         playWin();

@@ -8,11 +8,11 @@ A retro text-driven fight simulator and tactical card battler set in an undergro
 
 Every fight night pits your custom contender against the house veteran, Pigeon Pete, across a 3-bout series.
 
-1. **Scout the Corner Whisper**: Inspect Pete's active tell, vice, or habit before inking your card.
-2. **Ink Your Contender**: Describe your fighter in a single punchy sentence. The matchmaker translates your concept into attributes (Power, Speed, Guard), a bespoke stamina pool, and signature moves.
-3. **Fight the 3-Bout Card**: Each bout runs up to 7 rounds of momentum-driven action, featuring stamina loss, clinch work, and sudden-death finishes.
+1. **Scout the Corner Whisper**: Inspect Pete's active tell, vice, or habit before inking your card, or bribe the cellar informant for an unscripted AI leak.
+2. **Ink Your Contender**: Describe your fighter in a single punchy line (up to 80 characters). The matchmaker translates your concept into attributes (Power, Speed, Guard), a bespoke stamina pool, and signature moves.
+3. **Fight the 3-Bout Card**: Each bout runs up to 7 rounds of momentum-driven action, featuring stamina fatigue, clinch work, and sudden-death tiebreakers.
 4. **Corner Adjustments**: Between bouts, adapt your ring approach: press the attack, tuck your chin, or gamble on a haymaker to exploit Pete's shifts.
-5. **Trading Card Dossiers**: Generate pulp boxing card portraits styled with worn textured paper, available to preview and zoom in high-contrast detail.
+5. **Dossiers & Portraits**: Generate retro pulp comic portraits for both corners, inspectable in detail via the interactive zoom viewer.
 
 ![The Matchmaker's Programme](the-basement-circuit-ss.webp)
 

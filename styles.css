@@ -27,7 +27,7 @@ button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 3px sol
 .live-tag, .text-button { font-size: 11px; font-weight: 800; letter-spacing: .13em; }
 .live-tag { color: #d4cebc; }
 .live-tag i { display: inline-block; width: 8px; height: 8px; margin-right: 8px; background: var(--acid); border-radius: 50%; box-shadow: 0 0 0 3px #d4e35f2b; }
-.text-button { min-height: 44px; padding: 10px 0; color: var(--paper); background: none; border: 0; cursor: pointer; }
+.text-button { min-height: 44px; padding: 10px 0; color: var(--paper); background: none; border: 0; cursor: pointer; white-space: nowrap; }
 .text-button span { color: var(--acid); font-size: 16px; margin-left: 6px; }
 .auth-status { color: #c1baa6; font-size: 10px; font-weight: 800; letter-spacing: .12em; }
 .connect-button { min-height: 44px; padding: 0 14px; color: var(--ink); background: var(--acid); border: 0; cursor: pointer; font: 900 11px/1 Impact, sans-serif; letter-spacing: .09em; }
@@ -47,7 +47,7 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
 .bout-strip span:first-child { color: var(--acid); }
 .fight-stage { position: relative; min-height: 370px; display: grid; grid-template-columns: 1fr 110px 1fr; align-items: center; padding: 20px clamp(8px, 3vw, 40px) 52px; background-color: #242320; background-image: radial-gradient(#f0e8d61a .8px, transparent .8px), linear-gradient(135deg, #292824, #1c1c1a 63%); background-size: 8px 8px, auto; }
 .corner { position: relative; z-index: 1; min-width: 0; text-align: center; }
-.fighter-art { position: relative; height: 255px; max-width: 330px; margin: 0 auto; display: grid; place-items: center; }
+.fighter-art { position: relative; height: 255px; max-width: 330px; margin: 0 auto; padding-bottom: 22px; display: grid; place-items: center; }
 .fighter-art svg { width: min(100%, 260px); height: 100%; overflow: visible; filter: drop-shadow(7px 6px 0 #0008); }
 .home-art { --fighter-accent: var(--red); background: radial-gradient(ellipse at center 72%, #e6503233, transparent 58%); }
 .home-shadow, .pigeon-shadow { fill: #090909; opacity: .8; }
@@ -182,7 +182,7 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
     .intro { min-height: 0; padding: 32px 0 24px; align-items: flex-start; flex-direction: column; gap: 8px; }
     .intro-copy { width: 100%; }
     h1 { font-size: clamp(42px, 10vw, 54px); }
-    .round-stamp { width: 82px; height: 82px; flex-basis: 82px; align-self: flex-end; }
+    .round-stamp { width: 90px; height: 90px; flex-basis: 90px; align-self: flex-end; }
     .round-stamp strong { font-size: 16px; }
     .round-stamp span, .round-stamp small { font-size: 8px; }
     .lede { max-width: 520px; font-size: 17px; }
@@ -191,14 +191,13 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
     .fighter-art svg { width: 100%; }
     .stage-mark { width: 50px; height: 50px; font-size: 21px; }
     .stage-wire { height: 78px; }
-    .stage-caption { top: 68px; width: 100px; font-size: 8px; }
+    .stage-caption, .art-note { display: none; }
     .corner-label { flex-direction: column; gap: 7px; }
     .corner-label span { font-size: 9px; }
     .corner-label b { font-size: 12px; }
-    .art-note { font-size: 8px; }
-    .health-row { right: 12px; left: 12px; gap: 8px; }
-    .health-row span { max-width: 130px; font-size: 8px; }
-    .bout-strip, .bout-footer { min-height: 42px; padding-inline: 12px; font-size: 9px; letter-spacing: .08em; }
+    .health-row { right: 12px; left: 12px; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .health-row span { display: none; }
+    .bout-strip, .bout-footer { min-height: 42px; align-items: flex-start; flex-direction: column; gap: 4px; padding: 10px 12px; font-size: 9px; letter-spacing: .08em; }
     .ringside { grid-template-columns: 1fr; gap: 18px; margin-top: 32px; }
     .scout-card { min-height: 0; padding: 22px; }
     .scout-question { max-width: 520px; font-size: 22px; }
@@ -227,14 +226,12 @@ h1 em { color: var(--red); font: italic 900 1em/1 Georgia, serif; letter-spacing
     .masthead { flex-wrap: wrap; gap: 8px; padding-block: 10px; }
     .masthead-right { width: 100%; justify-content: space-between; }
     main { padding-inline: 14px; }
-    .round-stamp { width: 76px; height: 76px; flex-basis: 76px; }
+    .round-stamp { width: 84px; height: 84px; flex-basis: 84px; }
     .round-stamp strong { font-size: 15px; }
     h1 { font-size: clamp(38px, 12vw, 44px); }
     .fight-stage { grid-template-columns: minmax(0, 1fr) 42px minmax(0, 1fr); }
     .stage-mark { width: 42px; height: 42px; font-size: 18px; }
-    .stage-caption { width: 90px; font-size: 7px; }
     .corner-label b { font-size: 11px; }
-    .art-note { font-size: 7px; }
     .bout-strip, .bout-footer { padding-inline: 9px; font-size: 8px; }
     .fight-panel, .bout-result { padding-inline: 16px; }
 }

@@ -7,8 +7,14 @@
         <meta name="description" content="Write a fighter. Scout the rival. Call the upset." />
         <title>The Basement Circuit</title>
         <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='20' fill='%23e65032'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-family='Georgia,serif' font-weight='900' font-size='22' fill='%23fff4dc'%3EB!%3C/text%3E%3C/svg%3E" />
-        <link rel="stylesheet" href="styles.css?v=final4" />
-        <script type="module" src="src/main.js?v=final4"></script>
+        <link rel="stylesheet" href="styles.css?v=circuit2" />
+        <link rel="modulepreload" href="src/main.js?v=circuit2" />
+        <link rel="modulepreload" href="src/engine.js" />
+        <link rel="modulepreload" href="src/auth.js" />
+        <link rel="modulepreload" href="src/pollinations.js" />
+        <link rel="modulepreload" href="src/config.js" />
+        <link rel="modulepreload" href="src/audio.js" />
+        <script type="module" src="src/main.js?v=circuit2"></script>
     </head>
     <body>
         <header class="masthead">
@@ -260,10 +266,12 @@
             <span>PROMOTER: <a href="https://github.com/fisventurous" target="_blank" rel="noopener">@fisventurous</a> · <a href="https://github.com/fisventurous/The-Basement-Circuit" target="_blank" rel="noopener">REPO <span aria-hidden="true">↗</span></a></span>
             <a class="pollinations-badge" href="https://pollinations.ai/?ref=badge" target="_blank" rel="noopener" aria-label="Made with Pollinations.ai">
                 <img
-                    src="https://raw.githubusercontent.com/pollinations/pollinations/main/packages/ui/src/brand/badge-made-with.svg"
+                    src="badge-made-with.svg"
                     alt="Made with pollinations.ai"
                     width="158"
                     height="32"
+                    loading="lazy"
+                    decoding="async"
                 />
             </a>
             <span>NO TRAINING MONTAGE REQUIRED.</span>

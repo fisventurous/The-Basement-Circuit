@@ -9,14 +9,14 @@
         <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='20' fill='%23e65032'/%3E%3Ctext x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-family='Georgia,serif' font-weight='900' font-size='22' fill='%23fff4dc'%3EB!%3C/text%3E%3C/svg%3E" />
         <link rel="preconnect" href="https://gen.pollinations.ai" />
         <link rel="dns-prefetch" href="https://gen.pollinations.ai" />
-        <link rel="stylesheet" href="styles.css?v=circuit2" />
-        <link rel="modulepreload" href="src/main.js?v=circuit2" />
-        <link rel="modulepreload" href="src/engine.js" />
-        <link rel="modulepreload" href="src/auth.js" />
-        <link rel="modulepreload" href="src/pollinations.js" />
-        <link rel="modulepreload" href="src/config.js" />
-        <link rel="modulepreload" href="src/audio.js" />
-        <script type="module" src="src/main.js?v=circuit2"></script>
+        <link rel="stylesheet" href="styles.css?v=circuit6" />
+        <link rel="modulepreload" href="src/main.js?v=circuit6" />
+        <link rel="modulepreload" href="src/engine.js?v=circuit6" />
+        <link rel="modulepreload" href="src/auth.js?v=circuit6" />
+        <link rel="modulepreload" href="src/pollinations.js?v=circuit6" />
+        <link rel="modulepreload" href="src/config.js?v=circuit6" />
+        <link rel="modulepreload" href="src/audio.js?v=circuit6" />
+        <script type="module" src="src/main.js?v=circuit6"></script>
     </head>
     <body>
         <header class="masthead">
@@ -42,7 +42,7 @@
                 </div>
                 <div class="round-stamp" aria-label="Bout one of three">
                     <span>ROAD TO</span>
-                    <strong>THE<br />ODD<br />BELT</strong>
+                    <strong>THE ODD BELT</strong>
                     <small data-series-stamp>BOUT 01 / 03</small>
                 </div>
             </section>
@@ -127,11 +127,12 @@
                     <div class="paper-edge" aria-hidden="true"></div>
                 </aside>
 
-                <form class="fighter-form" data-fighter-form>
+                <p class="form-status" data-status aria-live="polite">A good line can beat a bad matchup.</p>
+
+                <form class="fighter-form" data-fighter-form action="javascript:void(0);">
                     <label for="fighter-line"><span class="eyebrow">YOUR ONE-LINE CONTENDER</span><span class="character-count"><b data-count>0</b> / 80</span></label>
                     <textarea id="fighter-line" name="fighter" maxlength="80" rows="2" placeholder="a boxing tortoise with a sleeve of crisps" required></textarea>
                     <div class="form-bottom"><p>Any contender can enter. Connect Pollinations for the AI to riff on your line.</p><button class="fight-button" type="submit">Make the intro <span aria-hidden="true">↗</span></button></div>
-                    <p class="form-status" data-status aria-live="polite">A good line can beat a bad matchup.</p>
                 </form>
             </section>
 
@@ -269,10 +270,10 @@
 
         <footer class="footer">
             <span>PROMOTER: <a href="https://github.com/fisventurous" target="_blank" rel="noopener">@fisventurous</a> · <a href="https://github.com/fisventurous/The-Basement-Circuit" target="_blank" rel="noopener">REPO <span aria-hidden="true">↗</span></a></span>
-            <a class="pollinations-badge" href="https://pollinations.ai/?ref=badge" target="_blank" rel="noopener" aria-label="Made with Pollinations.ai">
+            <a class="pollinations-badge" href="https://pollinations.ai/?ref=badge" target="_blank" rel="noopener" aria-label="Made for Pollinations.ai">
                 <img
                     src="badge-made-with.svg"
-                    alt="Made with pollinations.ai"
+                    alt="Made for pollinations.ai"
                     width="158"
                     height="32"
                     loading="lazy"

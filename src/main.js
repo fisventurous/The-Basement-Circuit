@@ -1,8 +1,8 @@
 // Pollinations API Gateway: https://gen.pollinations.ai
-import { makeFighter, makeChallenger, restoreFighter, simulateFight, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js";
-import { connectPollinations, disconnectPollinations, getAccessToken, takeDraft } from "./auth.js";
-import { forgeFighter, getFighterAvatarUrl, loadFighterAvatar, generateCustomRumour } from "./pollinations.js";
-import { isSoundEnabled, toggleSound, playBell, playHit, playExploit, playMiss, playWin, playLoss } from "./audio.js";
+import { makeFighter, makeChallenger, restoreFighter, simulateFight, validateContenderLine, CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES } from "./engine.js?v=circuit6";
+import { connectPollinations, disconnectPollinations, getAccessToken, takeDraft } from "./auth.js?v=circuit6";
+import { forgeFighter, getFighterAvatarUrl, loadFighterAvatar, generateCustomRumour } from "./pollinations.js?v=circuit6";
+import { isSoundEnabled, toggleSound, playBell, playHit, playExploit, playMiss, playWin, playLoss } from "./audio.js?v=circuit6";
 
 const $ = (selector) => document.querySelector(selector);
 const lineInput = $("#fighter-line");
@@ -131,6 +131,10 @@ if (draft) {
 
 lineInput.addEventListener("input", () => {
     count.textContent = String(lineInput.value.length);
+    if (status.classList.contains("is-scout-warning") && status.textContent !== "Get the word from the corner before you write your contender.") {
+        status.classList.remove("is-scout-warning");
+        status.textContent = "A good line can beat a bad matchup.";
+    }
 });
 
 scoutButton.addEventListener("click", () => {
@@ -140,6 +144,10 @@ scoutButton.addEventListener("click", () => {
     scoutAnswer.hidden = false;
     scoutButton.disabled = true;
     scoutButton.querySelector("span").textContent = "THE WORD IS OUT";
+    if (status.classList.contains("is-scout-warning")) {
+        status.classList.remove("is-scout-warning");
+        status.textContent = "Corner whispered. Now write your contender below.";
+    }
 });
 
 cycleScoutButton?.addEventListener("click", () => {
@@ -156,14 +164,16 @@ bribeButton?.addEventListener("click", async () => {
     if (currentFighter) return;
     const token = getAccessToken();
     if (!token) {
+        status.classList.remove("is-scout-warning");
         status.textContent = "Connect your Pollen pass to bribe the informant for live AI rumours.";
-        connectButton.focus();
+        connectButton.focus({ preventScroll: true });
         return;
     }
     bribeButton.disabled = true;
     const labelSpan = bribeButton.querySelector("span");
     if (labelSpan) labelSpan.textContent = "BRIBING…";
     else bribeButton.textContent = "BRIBING…";
+    status.classList.remove("is-scout-warning");
     status.textContent = "Passing coins across the table for the latest cellar whisper…";
     try {
         const customRumour = await generateCustomRumour(token);
@@ -190,6 +200,7 @@ form.addEventListener("submit", async (event) => {
     event.preventDefault();
     currentLine = lineInput.value.trim().replace(/\s+/g, " ");
     if (!scoutAnswer.textContent) {
+        status.classList.add("is-scout-warning");
         status.innerHTML = `
             <span class="status-manicule" aria-hidden="true">
                 <svg viewBox="0 0 32 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -204,10 +215,20 @@ form.addEventListener("submit", async (event) => {
             </span>
             <span>Get the word from the corner before you write your contender.</span>
         `;
-        scoutButton.focus();
+        status.scrollIntoView({ behavior: "smooth", block: "center" });
+        scoutButton.focus({ preventScroll: true });
         return;
     }
-    if (!currentLine) return;
+    status.classList.remove("is-scout-warning");
+    const validation = validateContenderLine(currentLine);
+    if (!validation.ok) {
+        status.classList.add("is-scout-warning");
+        status.textContent = validation.reason;
+        status.scrollIntoView({ behavior: "smooth", block: "center" });
+        lineInput.focus({ preventScroll: true });
+        return;
+    }
+    status.classList.remove("is-scout-warning");
     boutNumber = 1;
     seriesWins = 0;
     seriesLosses = 0;

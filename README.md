@@ -18,7 +18,7 @@ Every fight night pits your custom contender against the house veteran, Pigeon P
 
 ## Powered by Pollinations
 
-- **Fighter Generation**: `openai/gpt-5.6-sol` extracts structured stats, combat moves, and flaw exploits from natural-language descriptions via `https://gen.pollinations.ai/v1/chat/completions` ([`src/pollinations.js`](src/pollinations.js)).
+- **Fighter Generation**: `openai/gpt-5.4-nano` extracts structured stats, combat moves, and flaw exploits from natural-language descriptions via `https://gen.pollinations.ai/v1/chat/completions` ([`src/pollinations.js`](src/pollinations.js)).
 - **Card Portraits**: `black-forest-labs/flux.1.1-pro` (with `tongyi-mai/z-image-turbo` fallback) renders stylised retro comic portraits for each fighter via `https://gen.pollinations.ai/image/` ([`src/pollinations.js`](src/pollinations.js)).
 - **Pollen Auth**: Native OAuth PKCE flow allowing players to connect their own Pollinations pass directly in the browser ([`src/auth.js`](src/auth.js)).
 
@@ -32,4 +32,4 @@ python -m http.server 8000
 
 Then open `http://localhost:8000`.
 
-[![Made with pollinations.ai](https://raw.githubusercontent.com/pollinations/pollinations/main/packages/ui/src/brand/badge-made-with.svg)](https://pollinations.ai/?ref=badge)
+[![Made for pollinations.ai](badge-made-with.svg)](https://pollinations.ai/?ref=badge)

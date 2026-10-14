@@ -814,4 +814,54 @@ function simulateFight(line, tactic = "push", rematch = 0, fighterProfile = null
     };
 }
 
-export { CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES, makeFighter, makeChallenger, restoreFighter, simulateFight };
+function validateContenderLine(line) {
+    if (typeof line !== "string") return { ok: false, reason: "Give your contender a proper name or description." };
+    const clean = line.trim().replace(/\s+/g, " ");
+    if (!clean) return { ok: false, reason: "Write a line for your contender before inking the card." };
+    const words = clean.match(/[\p{L}\p{N}']+/gu) ?? [];
+    const alphanumeric = clean.replace(/[^\p{L}\p{N}]/gu, "");
+    const letters = clean.replace(/[^\p{L}]/gu, "");
+    if (alphanumeric.length < 3 || letters.length < 1) {
+        return { ok: false, reason: "Give your contender a bit more character (at least 3 characters)." };
+    }
+    if (/(.)\1{3,}/iu.test(clean)) {
+        return { ok: false, reason: "The promoter won’t sanction repeated keys. Give Pete a real opponent." };
+    }
+    const MASH_PATTERNS = [
+        /(asdf|sdfg|dfgh|fghj|ghjk|hjkl|zxcv|xcvb|cvbn|vbnm|qwer|wert|tyui|uiop)/i,
+        /(lkjh|kjhg|jhgf|hgfd|gfdsa|mnbv|nbvc|bvcx|vcxz|poiuy|rewq)/i,
+        /(wasd|asdw|dsaw|wdsa|sdwa|awsd)/i,
+        /(asdih|asidh|asdf|asdg|sddf|dfsa|hjkla)/i,
+    ];
+    for (const pattern of MASH_PATTERNS) {
+        if (pattern.test(clean)) {
+            return { ok: false, reason: "The promoter won’t sanction keyboard mash. Give your contender a proper description." };
+        }
+    }
+    for (const word of words) {
+        if (word.length >= 6 && /^(.{2,4})\1+$/i.test(word)) {
+            return { ok: false, reason: "That looks like keyboard mashing. Give your contender a proper description." };
+        }
+        const unique = new Set(word.toLocaleLowerCase("en-GB")).size;
+        if (word.length >= 5 && unique <= 2) {
+            return { ok: false, reason: "The crowd won’t chant that. Give your contender a proper name." };
+        }
+        const hasVowel = /[aeiouy]/i.test(word);
+        const hasLetter = /\p{L}/u.test(word);
+        if (hasLetter && word.length >= 3 && !hasVowel && !/^(brr|shh|hmm|tsk|nth|mr|dr|st)$/i.test(word) && !/^\d+$/.test(word)) {
+            return { ok: false, reason: "The referee can’t pronounce that. Check for accidental keysmashes." };
+        }
+        if (/[bcdfghjklmnpqrstvwxz]{5,}/i.test(word)) {
+            return { ok: false, reason: "The referee can’t pronounce that. Check for accidental keysmashes." };
+        }
+    }
+    if (words.length === 1) {
+        const single = words[0].toLocaleLowerCase("en-GB");
+        if (single.length === 4 && /[bcdfghjklmnpqrstvwxz]{3,}$/i.test(single) && !single.endsWith("s")) {
+            return { ok: false, reason: "The promoter won’t sanction keyboard mash. Give your contender a proper description." };
+        }
+    }
+    return { ok: true };
+}
+
+export { CORNER_RUMOURS, PETE_TAGLINES, HOME_TAGLINES, makeFighter, makeChallenger, restoreFighter, simulateFight, validateContenderLine };
